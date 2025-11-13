@@ -1,0 +1,464 @@
+/* --- CSS Variables (Your Theme) --- */
+:root {
+  --primary-color: #0052cc;
+  --primary-light: #f4f7ff;
+  --secondary-color: #34d399; /* For matching */
+  --secondary-light: #e0fbf1; /* For matching bg */
+  --secondary-dark: #067647; /* For matching text */
+  --error-color: #d93025; /* For error messages */
+  --error-light: #fbe9e7;
+  --success-color: #1a73e8;
+  --success-light: #e8f0fe;
+  --dark-color: #333;
+  --light-color: #fff;
+  --grey-color: #f0f2f5;
+  --border-color: #e0e0e0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  --border-radius: 8px;
+}
+
+/* --- Global Reset & Typography --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--grey-color);
+  color: var(--dark-color);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.3;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 2rem;
+}
+
+h2 {
+  font-size: 1.5rem;
+}
+
+a {
+  text-decoration: none;
+  color: var(--primary-color);
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* --- Main Layout --- */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 2rem auto;
+  flex-grow: 1;
+}
+
+/* This is the class our JS will use to show the current page */
+.main-content.active-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* All other pages are hidden */
+.main-content {
+  display: none;
+}
+
+/* --- Header / Navbar --- */
+.navbar {
+  background-color: var(--light-color);
+  box-shadow: var(--shadow);
+  padding: 1rem 5%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.nav-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+}
+
+/* Hide logged-in nav by default */
+.nav-links#nav-logged-in {
+  display: none;
+}
+
+.nav-links a {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  color: var(--dark-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.nav-links a.active,
+.nav-links a:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+}
+
+.nav-links .action-btn {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+  padding: 0.5rem 1rem;
+}
+
+.nav-links .action-btn:hover {
+  background-color: #0041a3;
+  color: var(--light-color);
+}
+.nav-links .action-btn.active {
+  background-color: #0041a3;
+  color: var(--light-color);
+}
+
+/* --- Reusable Card --- */
+.card {
+  background-color: var(--light-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+/* --- Form Styles (for Login/Signup/Profile) --- */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 500;
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+  font-family: inherit;
+}
+/* Read-only inputs look disabled */
+.form-group input[readonly] {
+  background-color: var(--grey-color);
+  cursor: not-allowed;
+}
+
+.form-group textarea {
+  min-height: 100px;
+}
+
+.btn {
+  background-color: var(--primary-color);
+  color: var(--light-color);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  margin-top: 1rem;
+  width: 100%; /* Make buttons full-width */
+}
+
+.btn:hover {
+  background-color: #0041a3;
+}
+
+/* Special button for filter bar */
+.filter-bar .btn {
+  width: auto;
+  flex-grow: 1;
+}
+
+/* --- Error/Success Messages --- */
+.error-message {
+  background-color: var(--error-light);
+  color: var(--error-color);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border: 1px solid var(--error-color);
+  display: none; /* Hidden by default */
+}
+/* Success messages (for profile page) */
+#profile-success {
+  background-color: var(--success-light);
+  color: var(--success-color);
+  border: 1px solid var(--success-color);
+  display: none;
+}
+
+/* --- Login/Signup View --- */
+.auth-container {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+
+.auth-container .card h2 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+  text-align: center;
+}
+
+.auth-toggle-link {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* --- Job & Resource List --- */
+.recommendation-list .list-item {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.3s;
+}
+
+.list-item:last-child {
+  margin-bottom: 0;
+}
+
+.list-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.item-header h3 {
+  margin-bottom: 0;
+  font-size: 1.1rem;
+}
+
+.item-header span {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #444;
+  white-space: nowrap;
+}
+/* Resource link styling */
+.list-item a {
+  font-weight: 600;
+}
+
+.item-company {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+
+.item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.item-tags .skill-tag {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+}
+
+/* --- Job Page (Filter) --- */
+.filter-bar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-bar select,
+.filter-bar input[type="text"] {
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  font-size: 1rem;
+  flex-grow: 1;
+}
+
+.filter-bar input[type="text"] {
+  flex-basis: 300px;
+}
+
+/* --- Dashboard View (Req 6) --- */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.profile-quickview h2 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.profile-info img {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--primary-light);
+}
+
+.profile-details h3 {
+  margin-bottom: 0.25rem;
+}
+
+.profile-details p {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.profile-skills h3 {
+  margin-top: 1rem;
+  font-size: 1.1rem;
+}
+
+.skills-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  margin-top: 0.5rem;
+}
+
+.skills-list li {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 15px;
+}
+
+/* --- Matching Logic UI (Req 5) --- */
+.item-matches {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.item-matches p {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--secondary-dark);
+  margin: 0;
+}
+
+.item-matches .skill-tag-match {
+  background-color: var(--secondary-light);
+  color: var(--secondary-dark);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 5px;
+}
+
+/* --- Profile Page (Req 2) --- */
+.profile-page-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.profile-page .card h3 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+  /* Stack dashboard and profile grids on tablets */
+  .dashboard-grid,
+  .profile-page-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Hide nav links on mobile (a real app would use a hamburger menu) */
+  .nav-links {
+    display: none;
+  }
+  .nav-links#nav-logged-in {
+    display: none;
+  }
+
+  .container {
+    width: 95%;
+    margin: 1rem auto;
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .auth-container {
+    width: 100%;
+    margin: 1rem auto;
+  }
+
+  .item-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Career Platform</title>
+    <!-- Link to the external CSS file -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- ======== HEADER / NAVIGATION ======== -->
+    <header class="navbar">
+      <a href="#" class="nav-logo" id="logo-link">CareerConnect</a>
+
+      <!-- Logged-Out Navigation -->
+      <nav>
+        <ul class="nav-links" id="nav-logged-out">
+          <li><a href="#" id="nav-jobs-public">Jobs</a></li>
+          <li><a href="#" id="nav-resources-public">Resources</a></li>
+          <li>
+            <a href="#" id="nav-login" class="action-btn active"
+              >Login / Sign Up</a
+            >
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Logged-In Navigation (Req 6d) -->
+      <nav>
+        <ul class="nav-links" id="nav-logged-in">
+          <li><a href="#" id="nav-dashboard" class="active">Dashboard</a></li>
+          <li><a href="#" id="nav-jobs-private">Jobs</a></li>
+          <li><a href="#" id="nav-resources-private">Resources</a></li>
+          <li><a href="#" id="nav-profile">Profile</a></li>
+          <li><a href="#" id="nav-logout" class="action-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- ======== MAIN CONTENT AREA ======== -->
+    <main class="container">
+      <!-- 
+          This is the LOGIN view (Req 1)
+        -->
+      <section class="main-content active-view" id="login-view">
+        <div class="auth-container">
+          <!-- Login Form -->
+          <div class="card">
+            <h2>Login</h2>
+            <p class="error-message" id="login-error"></p>
+            <!-- For errors -->
+            <form id="login-form">
+              <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" required />
+              </div>
+              <div class="form-group">
+                <label for="login-pass">Password</label>
+                <input type="password" id="login-pass" required />
+              </div>
+              <button type="submit" class="btn">Login</button>
+            </form>
+            <p class="auth-toggle-link">
+              Don't have an account?
+              <a href="#" id="goto-signup-link">Create one</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+          This is the SIGNUP view (Req 1)
+        -->
+      <section class="main-content" id="signup-view">
+        <div class="auth-container">
+          <!-- Signup Form (Req 1c) -->
+          <div class="card">
+            <h2>Sign Up</h2>
+            <p class="error-message" id="signup-error"></p>
+            <!-- For errors -->
+            <form id="signup-form">
+              <div class="form-group">
+                <label for="signup-name">Full Name</label>
+                <input type="text" id="signup-name" required />
+              </div>
+              <div class="form-group">
+                <label for="signup-email">Email</label>
+                <input type="email" id="signup-email" required />
+              </div>
+              <div class="form-group">
+                <label for="signup-pass">Password (min 6 characters)</label>
+                <input
+                  type="password"
+                  id="signup-pass"
+                  minlength="6"
+                  required
+                />
+              </div>
+
+              <!-- Added Education Level -->
+              <div class="form-group">
+                <label for="signup-education"
+                  >Education Level / Department</label
+                >
+                <input
+                  type="text"
+                  id="signup-education"
+                  placeholder="e.g., B.Sc. in CSE"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="signup-level">Experience Level</label>
+                <select id="signup-level" required>
+                  <option value="Fresher">Fresher</option>
+                  <option value="Junior">Junior</option>
+                  <option value="Mid">Mid-level</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="signup-track">Preferred Career Track</label>
+                <select id="signup-track" required>
+                  <option value="Web Development">Web Development</option>
+                  <option value="Data">Data</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn">Create Account</button>
+            </form>
+            <p class="auth-toggle-link">
+              Already have an account?
+              <a href="#" id="goto-login-link">Login</a>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+          This is the DASHBOARD view (Req 6)
+          This is new
+        -->
+      <section class="main-content" id="dashboard-view">
+        <h1>Dashboard</h1>
+        <div class="dashboard-grid">
+          <!-- Profile Quick View (Req 6a) -->
+          <aside class="profile-quickview card">
+            <h2>Your Profile</h2>
+            <div class="profile-info">
+              <img
+                src="https://placehold.co/100x100/0052cc/ffffff?text=User"
+                alt="User Profile Picture"
+              />
+              <div class="profile-details">
+                <h3 id="dash-name">Your Name</h3>
+                <p id="dash-track">Your Track</p>
+                <p id="dash-email">your.email@example.com</p>
+              </div>
+            </div>
+            <div class="profile-skills">
+              <h3>Your Skills</h3>
+              <ul class="skills-list" id="dash-skills">
+                <!-- Skills will be loaded here by JS -->
+                <li>Loading...</li>
+              </ul>
+            </div>
+          </aside>
+
+          <!-- Recommendations (Req 5 & 6b, 6c) -->
+          <div class="recommendations">
+            <!-- Recommended Jobs (Req 6b) -->
+            <section class="card recommendation-list">
+              <h2>Recommended Jobs (Req 5)</h2>
+              <div id="dash-jobs-list">
+                <!-- Job items will be loaded here by JS -->
+                <p>Loading recommendations...</p>
+              </div>
+            </section>
+
+            <!-- Recommended Resources (Req 6c) -->
+            <section
+              class="card recommendation-list"
+              style="margin-top: 1.5rem"
+            >
+              <h2>Recommended Learning (Req 5)</h2>
+              <div id="dash-resources-list">
+                <!-- Resource items will be loaded here by JS -->
+                <p>Loading recommendations...</p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+          This is the PROFILE page (Req 2)
+          This is new
+        -->
+      <section class="main-content" id="profile-view">
+        <h1>Your Profile</h1>
+        <p class="error-message" id="profile-success"></p>
+        <!-- For success/errors -->
+        <div class="profile-page-grid">
+          <!-- User Details Form (Req 1c, 2c) -->
+          <div class="card profile-page">
+            <h3>Your Details</h3>
+            <form id="profile-details-form">
+              <div class="form-group">
+                <label for="profile-name">Full Name (Req 1c)</label>
+                <input type="text" id="profile-name" />
+              </div>
+              <div class="form-group">
+                <label for="profile-email">Email (Req 1c)</label>
+                <input type="email" id="profile-email" readonly />
+                <!-- Email is unique key, not editable -->
+              </div>
+              <div class="form-group">
+                <label for="profile-education"
+                  >Education Level / Department (Req 1c)</label
+                >
+                <input type="text" id="profile-education" />
+              </div>
+              <div class="form-group">
+                <label for="profile-level">Experience Level (Req 1c)</label>
+                <select id="profile-level">
+                  <option value="Fresher">Fresher</option>
+                  <option value="Junior">Junior</option>
+                  <option value="Mid">Mid-level</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="profile-track"
+                  >Preferred Career Track (Req 1c)</label
+                >
+                <select id="profile-track">
+                  <option value="Web Development">Web Development</option>
+                  <option value="Data">Data</option>
+                  <option value="Design">Design</option>
+                  <option value="Marketing">Marketing</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="profile-roles">Target Roles (Req 2c)</label>
+                <input
+                  type="text"
+                  id="profile-roles"
+                  placeholder="e.g., Frontend Developer, React Engineer"
+                />
+              </div>
+              <button type="submit" class="btn">Save Changes</button>
+            </form>
+          </div>
+
+          <div class="profile-page">
+            <!-- Skills & Experience (Req 2a, 2b) -->
+            <div class="card">
+              <h3>Skills & Experience (Req 2a, 2b)</h3>
+              <form id="profile-skills-form">
+                <div class="form-group">
+                  <label for="profile-skills"
+                    >Add Skills (comma separated)</label
+                  >
+                  <textarea
+                    id="profile-skills"
+                    placeholder="JavaScript, React, Node.js, Communication..."
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="profile-experience"
+                    >Add Experience / Projects</label
+                  >
+                  <textarea
+                    id="profile-experience"
+                    placeholder="e.g., Built a personal portfolio website using React..."
+                  ></textarea>
+                </div>
+                <button type="submit" class="btn">
+                  Save Skills & Experience
+                </button>
+              </form>
+            </div>
+
+            <!-- CV Paste (Req 2d) -->
+            <div class="card" style="margin-top: 1.5rem">
+              <h3>Paste CV / Notes (Req 2d)</h3>
+              <form id="profile-cv-form">
+                <p>Paste your raw CV text here for storage.</p>
+                <div class="form-group">
+                  <textarea
+                    id="profile-cv"
+                    placeholder="Paste your CV here..."
+                  ></textarea>
+                </div>
+                <button type="submit" class="btn">Save Notes</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 
+          This is the JOBS page (Req 3)
+        -->
+      <section class="main-content" id="jobs-view">
+        <h1>Find Opportunities</h1>
+
+        <!-- Job Filters (Req 3b) -->
+        <div class="card filter-bar">
+          <input
+            type="text"
+            id="job-search-title"
+            placeholder="Search by title..."
+          />
+          <select id="job-search-location">
+            <option value="">All Locations</option>
+            <option value="Remote">Remote</option>
+            <option value="New York, NY">New York</option>
+            <option value="San Francisco, CA">San Francisco</option>
+            <option value="Austin, TX">Austin</option>
+            <option value="Chicago, IL">Chicago</option>
+          </select>
+          <select id="job-search-type">
+            <option value="">All Types</option>
+            <option value="Internship">Internship</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Part-time">Part-time</option>
+          </select>
+          <button class="btn" id="job-filter-btn">Filter</button>
+        </div>
+
+        <!-- Job List (Req 3) -->
+        <div class="card recommendation-list" id="jobs-list-container">
+          <!-- Mock data will be replaced by JS -->
+          <p>Loading jobs...</p>
+        </div>
+      </section>
+
+      <!-- 
+          This is the RESOURCES page (Req 4)
+        -->
+      <section class="main-content" id="resources-view">
+        <h1>Learning Resources</h1>
+
+        <!-- Resource List (Req 4) -->
+        <div class="card recommendation-list" id="resources-list-container">
+          <!-- Mock data will be replaced by JS -->
+          <p>Loading resources...</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Link to the external JavaScript file -->
+    <script src="script.js"></script>
+  </body>
+</html>
