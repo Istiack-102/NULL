@@ -2,7 +2,86 @@
  * Career Platform - Full App Logic
  * This file handles all frontend interactivity, state, and API calls.
  */
+/**
+ * Converts the AI's raw markdown text into styled HTML.
+ * This function is critical for making the Roadmap look professional.
+ */
+function renderRoadmap(markdownText) {
+  let html = "";
+  const lines = markdownText.split("\n");
 
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+
+    // 1. Markdown Headers (##, ###)
+    if (trimmedLine.startsWith("## ")) {
+      // Converts '## PHASE 1' to '<h2>PHASE 1</h2>'
+      html += `<h2 class="roadmap-header">${trimmedLine
+        .substring(3)
+        .trim()}</h2>`;
+    } else if (trimmedLine.startsWith("### ")) {
+      // Converts '### Focus' to '<h4>Focus</h4>'
+      html += `<h4 class="roadmap-subheader">${trimmedLine
+        .substring(4)
+        .trim()}</h4>`;
+    }
+
+    // 2. Lists (* or -)
+    else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
+      const content = trimmedLine.substring(2).trim();
+      // Finds content inside **bold** tags for emphasis
+      const styledContent = content.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+      );
+
+      // If the last thing added wasn't an <ul>, start one
+      if (!html.endsWith("<ul>") && !html.endsWith("</ul>")) {
+        html += '<ul class="roadmap-list">';
+      }
+      html += `<li>${styledContent}</li>`;
+    }
+
+    // 3. Horizontal Rule (---)
+    else if (trimmedLine.startsWith("---")) {
+      html += '<hr class="roadmap-divider">';
+    }
+
+    // 4. Tables (We simplify table rendering for now, focusing on headers)
+    else if (trimmedLine.includes("| :--- |")) {
+      // Starts a table section title
+      html +=
+        '<h4 class="roadmap-subheader" style="margin-top: 1.5rem;">Job Application Timeline</h4>';
+    }
+
+    // 5. Paragraphs (Any other text, or bold text)
+    else if (trimmedLine.length > 0) {
+      const styledContent = trimmedLine.replace(
+        /\*\*(.*?)\*\*/g,
+        "<strong>$1</strong>"
+      );
+
+      // If we were building a list, close it first
+      if (html.endsWith("</ul>")) {
+        html += "</ul>";
+      }
+      // Add the paragraph content
+      html += `<p class="roadmap-paragraph">${styledContent}</p>`;
+    }
+
+    // Close any lingering UL tag
+    if (trimmedLine === "" && html.endsWith("</ul>")) {
+      html += "</ul>";
+    }
+  }
+
+  // Final check to close the UL tag if the loop ended mid-list
+  if (html.endsWith("</ul>")) {
+    html += "</ul>";
+  }
+
+  return html;
+}
 // Wait for the DOM (HTML) to be fully loaded
 document.addEventListener("DOMContentLoaded", () => {
   // --- 1. State & Constants ---
@@ -47,8 +126,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const profileDetailsForm = document.getElementById("profile-details-form");
   const profileSkillsForm = document.getElementById("profile-skills-form");
   const profileCvForm = document.getElementById("profile-cv-form");
+  ////injected by me
+  const analyzeCvBtn = document.getElementById("analyze-cv-btn");
+  const analyzeCvStatus = document.getElementById("analyze-cv-status");
   const jobFilterBtn = document.getElementById("job-filter-btn");
-
+  /// four
+  const roadmapForm = document.getElementById("roadmap-form");
+  const roadmapOutput = document.getElementById("roadmap-output");
+  const roadmapStatus = document.getElementById("roadmap-status");
   // Error/Success Message containers
   const loginError = document.getElementById("login-error");
   const signupError = document.getElementById("signup-error");
@@ -300,14 +385,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function showProfileSuccess(message) {
     profileSuccess.textContent = message;
     profileSuccess.style.display = "block";
-    // Reset styles in case it was an error
-    profileSuccess.style.backgroundColor = "var(--success-light)";
-    profileSuccess.style.color = "var(--success-color)";
-    profileSuccess.style.border = "1px solid var(--success-color)";
-
+    // ... (rest of the function) ...
     setTimeout(() => {
       profileSuccess.style.display = "none";
-    }, 3000); // Hide after 3 seconds
+    }, 3000);
   }
 
   /**
@@ -660,15 +741,116 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  ////injected by me
+  // (Req 1.Part2) AI CV Analysis Button
+  if (analyzeCvBtn) {
+    analyzeCvBtn.addEventListener("click", async () => {
+      const cv_text = document.getElementById("profile-cv").value;
+      if (!cv_text.trim()) {
+        alert("Please paste your CV text into the box first.");
+        return;
+      }
+
+      // Show loading message
+      analyzeCvStatus.textContent = "Analyzing... this may take a moment.";
+      analyzeCvStatus.style.display = "block";
+      analyzeCvBtn.disabled = true;
+
+      try {
+        const response = await fetchWithAuth("/profile/analyze-cv", {
+          method: "POST",
+          body: JSON.stringify({ cv_text: cv_text }),
+        });
+
+        // Inside the 'try' block:
+        if (response.status === 403 || response.status === 401) {
+          // The security guard kicked us out, no need to read JSON
+          throw new Error("Access denied. Please log out and log back in.");
+        }
+
+        const data = await response.json(); // Now this should only run if the status is OK (200)
+
+        if (!response.ok) {
+          // Handle a 500 error that returned JSON
+          throw new Error(
+            data.message || "Analysis failed (Internal Server Error)."
+          );
+        }
+        // ...
+
+        // SUCCESS! Update the profile form fields
+        document.getElementById("profile-skills").value = data.skills;
+        document.getElementById("profile-roles").value = data.roles;
+
+        // Show success message
+        analyzeCvStatus.textContent =
+          "Analysis complete! Your skills and roles have been updated. Remember to save!";
+      } catch (err) {
+        console.error("CV Analysis error:", err);
+        analyzeCvStatus.textContent = `Error: ${err.message}`;
+      } finally {
+        // Re-enable button
+        analyzeCvBtn.disabled = false;
+      }
+    });
+  }
+
   // (Req 3) Job Filter
   if (jobFilterBtn) {
     jobFilterBtn.addEventListener("click", () => {
+      ///changed by me
       const filters = {
-        title: document.getElementById("filter-title").value,
-        location: document.getElementById("filter-location").value,
-        type: document.getElementById("filter-type").value,
+        title: document.getElementById("job-search-title").value,
+        location: document.getElementById("job-search-location").value,
+        type: document.getElementById("job-search-type").value,
       };
       loadJobsPage(filters);
+    });
+  }
+
+  // (Req 4) AI Roadmap Generation Form
+  if (roadmapForm) {
+    roadmapForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const targetRole = document.getElementById("roadmap-target-role").value;
+      const timeframe = document.getElementById("roadmap-timeframe").value;
+
+      // Get current skills from the profile data (assuming loadDashboardData ran)
+      const currentSkills = document.getElementById("dash-skills").textContent;
+
+      try {
+        // 1. Show status
+        roadmapStatus.textContent = "Generating roadmap... please wait.";
+        roadmapStatus.style.display = "block";
+        roadmapOutput.innerHTML = "<p>Processing request with AI...</p>";
+
+        // 2. Send request to the backend
+        const response = await fetchWithAuth("/roadmap", {
+          method: "POST",
+          body: JSON.stringify({
+            targetRole,
+            timeframe,
+            currentSkills,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Roadmap generation failed.");
+        }
+
+        // 3. Display successful roadmap
+        // Replace the raw <pre> tag with the new HTML renderer:
+        roadmapOutput.innerHTML = renderRoadmap(data.roadmap);
+        roadmapStatus.textContent = "Roadmap generated successfully!";
+      } catch (err) {
+        roadmapOutput.innerHTML = `<p class="error-message">Error: ${err.message}</p>`;
+        roadmapStatus.textContent = "Failed to generate roadmap.";
+      } finally {
+        // Re-enable button after 5 seconds
+        setTimeout(() => (roadmapStatus.style.display = "none"), 5000);
+      }
     });
   }
 

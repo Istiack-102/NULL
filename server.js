@@ -12,10 +12,15 @@
 // --- 1. Import All Our Tools ---
 const express = require("express");
 const mysql = require("mysql2");
-const bodyParser = require("body-parser"); // Note: Corrected typo from earlier
+const bodyParser = require("body-parser");
 const cors = require("cors");
 const bcrypt = require("bcryptjs"); // For password hashing
 const jwt = require("jsonwebtoken"); // For "login" tokens
+const fetch = require("node-fetch");
+// Define the AI constant
+const GEMINI_API_URL =
+  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=";
+const GEMINI_API_KEY = "AIzaSyD0RA3MsTWLFJnk89xnfgidk_B5H2cKlQ4"; // Leave this blank
 
 // --- 2. Create the App & Connect to DB ---
 const app = express();
@@ -239,40 +244,91 @@ app.post("/profile", authenticateToken, (req, res) => {
     cv_text, // from cv form
   } = req.body;
 
-  const sql = `
-        UPDATE users SET 
-            full_name = ?, education_level = ?, experience_level = ?, 
-            career_track = ?, target_roles = ?, skills = ?, 
-            experience_notes = ?, cv_text = ?
-        WHERE id = ?
-    `;
+  // --- THIS IS THE FIX ---
 
-  db.query(
-    sql,
-    [
-      fullName,
-      education,
-      level,
-      track,
-      roles,
-      skills,
-      experience,
-      cv_text,
-      userId,
-    ],
-    (err, result) => {
-      if (err) {
-        console.error("Profile save error:", err);
-        return res.status(500).json({ message: "Failed to update profile" });
-      }
-      res.json({ message: "Profile updated successfully!" });
+  // 1. The query string
+  const sql = `
+    UPDATE users SET 
+        full_name = ?, 
+        education_level = ?, 
+        experience_level = ?, 
+        career_track = ?, 
+        target_roles = ?, 
+        skills = ?, 
+        experience_notes = ?, 
+        cv_text = ?
+    WHERE id = ?
+`;
+  // 2. The parameters, in the correct order
+  const params = [
+    fullName,
+    education, // Goes into education_level
+    level, // Goes into experience_level
+    track,
+    roles,
+    skills,
+    experience, // Goes into experience_notes
+    cv_text,
+    userId, // Goes into WHERE id = ?
+  ];
+
+  // 3. The query
+  db.query(sql, params, (err, result) => {
+    if (err) {
+      // This will now log the real error to your terminal
+      console.error("Profile save error:", err);
+      return res.status(500).json({ message: "Failed to update profile" });
     }
-  );
+    // It will only show success if the query actually worked
+    res.json({ message: "Profile updated successfully!" });
+  });
+  // --- END OF FIX ---
+});
+
+//// new injected by me
+/*
+ * Req 1.Part2: AI Skill Extraction (Heuristic Method)
+ * This route uses our *own* internal dictionary to find skills. No API key needed.
+ */
+app.post("/profile/analyze-cv", authenticateToken, (req, res) => {
+  const userId = req.user.userId;
+  const { cv_text } = req.body;
+
+  if (!cv_text || cv_text.trim() === "") {
+    return res.status(400).json({ message: "CV text is empty." });
+  }
+
+  try {
+    // Call our new *internal* helper function
+    const aiResponse = findSkillsInCV(cv_text);
+
+    // Update the user's profile in the database with the new skills
+    // We only update skills, as this method can't guess roles.
+    const sql = "UPDATE users SET skills = ? WHERE id = ?";
+    db.query(sql, [aiResponse.skills, userId], (err, result) => {
+      if (err) {
+        console.error("DB update error after AI analysis:", err);
+        return res.status(500).json({ message: "Failed to save new skills." });
+      }
+
+      // Send the new skills back to the frontend
+      res.json({
+        message: "CV Analyzed successfully!",
+        skills: aiResponse.skills,
+        roles: "", // This method doesn't find roles, so we send an empty string
+      });
+    });
+  } catch (err) {
+    console.error("Skill Analysis Error:", err.message);
+    res
+      .status(500)
+      .json({ message: "Failed to analyze CV", error: err.message });
+  }
 });
 
 /*
- * Req 3: Jobs Page
- * PROTECTED route (so we can show match scores)
+ * Req 3: Jobs Page (Protected)
+ * This is for LOGGED-IN users
  */
 app.get("/jobs", authenticateToken, async (req, res) => {
   const userId = req.user.userId;
@@ -327,6 +383,42 @@ app.get("/jobs", authenticateToken, async (req, res) => {
 });
 
 /*
+ * Req 3: Jobs Page (Public) - NEW
+ * This is for LOGGED-OUT users
+ */
+app.get("/public-jobs", async (req, res) => {
+  const { title, location, type } = req.query;
+
+  try {
+    // Build Job Query with Filters
+    let sql = "SELECT * FROM jobs WHERE 1=1";
+    const params = [];
+
+    if (title) {
+      sql += " AND job_title LIKE ?";
+      params.push(`%${title}%`);
+    }
+    if (location) {
+      sql += " AND location = ?";
+      params.push(location);
+    }
+    if (type) {
+      sql += " AND job_type = ?";
+      params.push(type);
+    }
+
+    // Get Filtered Jobs
+    const [jobRows] = await db.promise().query(sql, params);
+
+    // We send the jobs back *without* match scores
+    res.json(jobRows);
+  } catch (err) {
+    console.error("Public jobs page error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+/*
  * Req 4: Resources Page
  * PUBLIC route (no login needed)
  */
@@ -335,6 +427,35 @@ app.get("/resources", (req, res) => {
     if (err) return res.status(500).json({ message: "Server error" });
     res.json(results);
   });
+});
+/*
+ * Req 4: AI-Generated Career Roadmap (Mandatory)
+ */
+app.post("/roadmap", authenticateToken, async (req, res) => {
+  const { targetRole, timeframe, currentSkills } = req.body;
+
+  if (!targetRole || !timeframe) {
+    return res
+      .status(400)
+      .json({ message: "Target role and timeframe are required." });
+  }
+
+  try {
+    // Call the AI helper function
+    const roadmapText = await generateRoadmap(
+      targetRole,
+      timeframe,
+      currentSkills
+    );
+
+    // Send the raw text back to the frontend
+    res.json({ roadmap: roadmapText, message: "Roadmap created." });
+  } catch (err) {
+    console.error("Roadmap Error:", err);
+    res
+      .status(500)
+      .json({ message: "Failed to generate roadmap due to AI service error." });
+  }
 });
 
 // --- 6. Helper Functions ---
@@ -376,7 +497,7 @@ function calculateMatch(job, user, allResources) {
     .filter((s) => s); // ['js', 'react', 'redux']
 
   if (jobSkills.length === 0) {
-    // If job has no skills, it's a 0% match (or 100%? Let's say 0%)
+    // If job has no skills, it's a 0% match
     return {
       ...job,
       matchPercent: 0,
@@ -414,6 +535,147 @@ function calculateMatch(job, user, allResources) {
     recommendedResources: recommendedResources.slice(0, 2), // Max 2 recommendations
   };
 }
+
+////also injected by me
+// --- 7. AI Helper Function ---
+/**
+ * (Req 4) Calls the Gemini AI to generate a structured career roadmap.
+ * @returns {string} - The generated roadmap text.
+ */
+async function generateRoadmap(targetRole, timeframe, currentSkills) {
+  const userPrompt = `
+    Your goal is to create a detailed, personalized career roadmap.
+
+    **User Details:**
+    - **Current Skills:** ${currentSkills}
+    - **Target Role:** ${targetRole}
+    - **Timeframe:** ${timeframe}
+
+    **Instructions:**
+    1. **MUST** create a plan divided into phases (e.g., Month 1, Phase 2).
+    2. **MUST** use clear, formatted markdown (use bold, lists, and headers).
+    3. For each phase, include **Specific Topics/Technologies**, **Simple Project Ideas**, and a **Go/No-Go Checkpoint**.
+    4. Include a suggested time point (e.g., "End of Month 3") for the user to **Start Applying for Internships/Jobs**.
+    5. The tone should be encouraging and professional.
+    `;
+
+  const payload = {
+    contents: [{ parts: [{ text: userPrompt }] }],
+  };
+
+  const response = await fetch(GEMINI_API_URL + GEMINI_API_KEY, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error("Gemini Roadmap API Error:", response.status, errorText);
+    throw new Error(`AI service failed with status ${response.status}.`);
+  }
+
+  const result = await response.json();
+
+  if (result.candidates && result.candidates[0].content.parts[0].text) {
+    return result.candidates[0].content.parts[0].text;
+  } else {
+    console.error("Gemini Roadmap API returned unexpected structure:", result);
+    throw new Error("AI returned an empty or malformed response.");
+  }
+}
+/**
+ * (Req 1.Part2) Finds skills in CV using a keyword dictionary.
+ * This is the "heuristic" method. No API key needed.
+ * @param {string} cvText - The raw CV text from the user
+ * @returns {object} - { skills: "..." }
+ */
+
+function findSkillsInCV(cvText) {
+  // Our "Dictionary" of skills.
+  // We can add hundreds of words here!
+  const SKILL_DICTIONARY = [
+    // Languages
+    "javascript",
+    "python",
+    "java",
+    "c#",
+    "c++",
+    "php",
+    "sql",
+    "html",
+    "css",
+    "typescript",
+    // Frameworks & Libraries
+    "react",
+    "node.js",
+    "express.js",
+    "angular",
+    "vue.js",
+    "django",
+    "flask",
+    "spring",
+    ".net",
+    "laravel",
+    "jest",
+    "tailwind css",
+    "bootstrap",
+    "jquery",
+    "d3.js",
+    "chart.js",
+    // Databases
+    "mysql",
+    "mongodb",
+    "firebase",
+    "postgresql",
+    "ms sql",
+    // Tools & Platforms
+    "git",
+    "github",
+    "docker",
+    "figma",
+    "vs code",
+    "heroku",
+    "aws",
+    "azure",
+    "google cloud",
+    // Soft Skills & Methods
+    "agile",
+    "scrum",
+    "teamwork",
+    "communication",
+    "problem-solving",
+    "creative thinking",
+    "time management",
+    "leadership",
+    "data analysis",
+    "machine learning",
+    // Add more skills as needed!
+  ];
+
+  // 1. Clean the CV text
+  // Convert to lowercase and add spaces around symbols to separate words
+  const cleanText = cvText.toLowerCase().replace(/[/(),]/g, " ");
+
+  // 2. Find matches
+  const foundSkills = [];
+  // Inside findSkillsInCV, use a simpler search method:
+  for (const skill of SKILL_DICTIONARY) {
+    // This is safer: it checks if the CV text *includes* the skill string.
+    if (cleanText.includes(skill)) {
+      foundSkills.push(skill);
+    }
+  }
+
+  // 3. Remove duplicates and join into a string
+  const uniqueSkills = [...new Set(foundSkills)];
+
+  return {
+    skills: uniqueSkills.join(", "), // e.g., "javascript, react, node.js, teamwork"
+    roles: "", // This simple method can't guess roles, so we leave it blank.
+  };
+}
+
 console.log("New, smarter calculateMatch function is ready!");
 
 // --- 7. Start the Server ---

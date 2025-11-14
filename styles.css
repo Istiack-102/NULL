@@ -655,3 +655,65 @@ img {
     align-items: flex-start;
   }
 }
+/* --- 10. AI Roadmap Styling (Req 4) --- */
+
+#roadmap-output {
+  min-height: 200px;
+  padding: 1.5rem;
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-primary-light);
+  box-shadow: var(--shadow-lg);
+}
+
+.roadmap-header {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  border-bottom: 2px solid var(--color-primary-light);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.roadmap-subheader {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.roadmap-divider {
+  border: none;
+  border-top: 1px dashed var(--color-border);
+  margin: 1.5rem 0;
+}
+
+.roadmap-paragraph {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.roadmap-list {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 1rem;
+}
+
+.roadmap-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+
+.roadmap-list li::before {
+  content: "•"; /* Custom bullet point */
+  color: var(--color-primary);
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  top: 0;
+}

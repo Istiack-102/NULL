@@ -163,11 +163,42 @@
           <!-- Career Roadmap (Req 4 Placeholder) -->
           <div class="card card-roadmap">
             <h3>Your Career Roadmap (Req 4)</h3>
-            <p>This is where the AI-generated roadmap will appear.</p>
-            <button id="generate-roadmap-btn" class="button-primary">
-              Generate Roadmap
-            </button>
-            <div id="roadmap-output"></div>
+            <form id="roadmap-form">
+              <div class="form-group">
+                <label for="roadmap-target-role">Target Job Role</label>
+                <input
+                  type="text"
+                  id="roadmap-target-role"
+                  placeholder="e.g., Junior Data Analyst"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="roadmap-timeframe">Timeframe</label>
+                <select id="roadmap-timeframe" required>
+                  <option value="3 Months">3 Months (Fast Track)</option>
+                  <option value="6 Months">6 Months (Balanced)</option>
+                  <option value="12 Months">12 Months (Part-time)</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                class="button-primary"
+                id="generate-roadmap-btn"
+              >
+                🚀 Generate Personalized Roadmap
+              </button>
+              <p
+                id="roadmap-status"
+                class="success-message"
+                style="display: none"
+              ></p>
+            </form>
+            <div id="roadmap-output" class="card-output">
+              <p>
+                Your personalized roadmap will appear here after generation.
+              </p>
+            </div>
           </div>
 
           <!-- Recommended Jobs -->
