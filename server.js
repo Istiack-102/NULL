@@ -496,6 +496,41 @@ app.post("/chatbot", authenticateToken, async (req, res) => {
   }
 });
 
+/*
+ * Req 6: AI CV Summary Assistant
+ */
+app.post("/profile/summarize", authenticateToken, async (req, res) => {
+  const { skills, experience } = req.body;
+
+  if (!skills && !experience) {
+    return res.status(400).json({
+      message: "Skills or experience details are required for the summary.",
+    });
+  }
+
+  // Check 1: Key Check
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "") {
+    return res.status(503).json({
+      message:
+        "AI Service Unavailable. Please input a valid API Key into server.js.",
+    });
+  }
+
+  try {
+    // Call the AI helper function
+    const summaryText = await generateSummary(skills, experience);
+
+    // Send the generated text back
+    res.json({ summary: summaryText, message: "Summary created." });
+  } catch (err) {
+    console.error("Summary Error:", err);
+    // Handle external service failure (like the API key issue)
+    res
+      .status(500)
+      .json({ message: "Failed to connect to the summary service." });
+  }
+});
+
 // --- 6. Helper Functions ---
 
 /**
@@ -659,6 +694,50 @@ async function generateChatbotResponse(query) {
 
   if (result.candidates && result.candidates[0].content.parts[0].text) {
     return result.candidates[0].content.parts[0].text;
+  } else {
+    throw new Error("AI returned an empty or malformed response.");
+  }
+}
+
+/**
+ * (Req 6) Calls the Gemini AI to generate a professional CV summary.
+ * @returns {string} - The generated summary text.
+ */
+async function generateSummary(skills, experience) {
+  const userPrompt = `
+    You are an expert resume writer. Your task is to write a concise, compelling professional summary (3-4 sentences max) for a CV, based on the provided skills and experience.
+
+    **Instructions:**
+    1. Start with the user's experience level (e.g., Fresher, Mid-level).
+    2. Highlight their core technical skills (e.g., React, Python).
+    3. Mention one key soft skill (e.g., Problem-Solving, Teamwork).
+    4. End with their career goal (e.g., "seeking a Junior Data Analyst role").
+    5. Provide ONLY the summary text. Do not include a title or introduction.
+
+    **User Data:**
+    - Skills: ${skills}
+    - Experience Notes: ${experience}
+    `;
+
+  const payload = {
+    contents: [{ parts: [{ text: userPrompt }] }],
+  };
+
+  const response = await fetch(GEMINI_API_URL + GEMINI_API_KEY, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI service failed with status ${response.status}.`);
+  }
+
+  const result = await response.json();
+
+  if (result.candidates && result.candidates[0].content.parts[0].text) {
+    // The AI text may need slight cleanup (trimming quotes/spaces)
+    return result.candidates[0].content.parts[0].text.trim();
   } else {
     throw new Error("AI returned an empty or malformed response.");
   }

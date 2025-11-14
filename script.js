@@ -142,6 +142,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const careerbotInput = document.getElementById("careerbot-input");
   const careerbotAskBtn = document.getElementById("careerbot-ask-btn");
   const careerbotChatWindow = document.getElementById("careerbot-chat-window");
+  // requirement 6
+  const generateSummaryBtn = document.getElementById("generate-summary-btn");
+  const summaryStatus = document.getElementById("summary-status");
   // --- 2. Helper Functions ---
 
   /**
@@ -896,6 +899,56 @@ document.addEventListener("DOMContentLoaded", () => {
         careerbotChatWindow.innerHTML += `<div class="chat-message error-message"><p><strong>Mentor:</strong> Error: ${err.message}</p></div>`;
       } finally {
         careerbotChatWindow.scrollTop = careerbotChatWindow.scrollHeight;
+      }
+    });
+  }
+
+  // (Req 6) CV Summary Assistant Logic
+  if (generateSummaryBtn) {
+    generateSummaryBtn.addEventListener("click", async () => {
+      // We use the existing skills and experience text areas as input
+      const currentSkills = document.getElementById("profile-skills").value;
+      const currentExperience =
+        document.getElementById("profile-experience").value;
+
+      if (currentSkills.trim() === "" && currentExperience.trim() === "") {
+        alert(
+          "Please add some skills or experience notes first to generate a summary."
+        );
+        return;
+      }
+
+      try {
+        // 1. Show status
+        summaryStatus.textContent = "Generating summary...";
+        summaryStatus.style.display = "block";
+        generateSummaryBtn.disabled = true;
+
+        // 2. Send request to the backend
+        const response = await fetchWithAuth("/profile/summarize", {
+          method: "POST",
+          body: JSON.stringify({
+            skills: currentSkills,
+            experience: currentExperience,
+          }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Summary generation failed.");
+        }
+
+        // 3. SUCCESS! Insert the generated text into the profile experience box
+        // This allows the user to edit it before saving
+        document.getElementById("profile-experience").value = data.summary;
+        summaryStatus.textContent =
+          "Summary generated successfully! Remember to save.";
+      } catch (err) {
+        summaryStatus.textContent = `Error: ${err.message}`;
+        console.error("Summary Assistant Error:", err);
+      } finally {
+        generateSummaryBtn.disabled = false;
+        setTimeout(() => (summaryStatus.style.display = "none"), 5000);
       }
     });
   }
