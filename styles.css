@@ -717,3 +717,70 @@ img {
   left: 0;
   top: 0;
 }
+
+/* --- 11. CareerBot Styling (Req 5) --- */
+
+#careerbot-chat-window {
+  background-color: var(--color-bg-light);
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+
+.chat-message {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  max-width: 90%;
+}
+
+.user-message {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  align-self: flex-end;
+  margin-left: auto;
+  border-top-right-radius: 0;
+}
+
+.bot-message {
+  background-color: var(--color-bg-white);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  align-self: flex-start;
+  margin-right: auto;
+  border-top-left-radius: 0;
+}
+
+.bot-message strong {
+  font-weight: 600;
+}
+
+.bot-disclaimer {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 0.5rem;
+  border-top: 1px dashed var(--color-border);
+  padding-top: 0.25rem;
+}
+
+.typing-indicator {
+  color: var(--color-text-light);
+  animation: blink 1s infinite;
+  display: inline-block;
+  padding-left: 0.5rem;
+}
+
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

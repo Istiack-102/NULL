@@ -219,17 +219,28 @@
 
           <!-- CareerBot (Req 5 Placeholder) -->
           <div class="card card-careerbot">
-            <h3>CareerBot (Req 5)</h3>
-            <p>Ask a career question:</p>
-            <input
-              type="text"
-              id="careerbot-input"
-              placeholder="e.g., How do I become a Data Analyst?"
-            />
-            <button id="careerbot-ask-btn" class="button-secondary">
+            <h3>CareerBot: Your Mentor Assistant (Req 5)</h3>
+            <div id="careerbot-chat-window" class="card-output">
+              <p>
+                Hello! I'm your Career Mentor. Ask me anything about skills,
+                projects, or getting an internship!
+              </p>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem">
+              <input
+                type="text"
+                id="careerbot-input"
+                placeholder="e.g., Which roles fit my skills?"
+              />
+            </div>
+            <button
+              id="careerbot-ask-btn"
+              class="button-primary"
+              style="width: 100%"
+            >
               Ask Bot
             </button>
-            <div id="careerbot-output"></div>
           </div>
         </div>
       </section>

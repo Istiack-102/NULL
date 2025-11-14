@@ -458,6 +458,44 @@ app.post("/roadmap", authenticateToken, async (req, res) => {
   }
 });
 
+/*
+ * Req 5: CareerBot / Mentor Assistant
+ */
+app.post("/chatbot", authenticateToken, async (req, res) => {
+  const { query } = req.body;
+
+  if (!query) {
+    return res.status(400).json({ message: "Query is required." });
+  }
+
+  // Check 1: Key Check
+  if (!GEMINI_API_KEY || GEMINI_API_KEY === "") {
+    return res.status(503).json({
+      message:
+        "AI Service Unavailable. Please input a valid API Key into server.js.",
+      disclaimer: "Cannot connect to external mentor service.",
+    });
+  }
+
+  try {
+    // Call the AI helper function
+    const botResponse = await generateChatbotResponse(query);
+
+    // Send the raw text back to the frontend
+    res.json({
+      response: botResponse,
+      disclaimer:
+        "Note: This is AI-generated guidance, not a guarantee of outcome.",
+    });
+  } catch (err) {
+    console.error("Chatbot Error:", err);
+    // Handle external service failure
+    res
+      .status(500)
+      .json({ message: "Failed to connect to the mentor service." });
+  }
+});
+
 // --- 6. Helper Functions ---
 
 /**
@@ -581,6 +619,47 @@ async function generateRoadmap(targetRole, timeframe, currentSkills) {
     return result.candidates[0].content.parts[0].text;
   } else {
     console.error("Gemini Roadmap API returned unexpected structure:", result);
+    throw new Error("AI returned an empty or malformed response.");
+  }
+}
+
+/**
+ * (Req 5) Calls the Gemini AI to generate a structured chat response.
+ * @returns {string} - The generated conversational text.
+ */
+async function generateChatbotResponse(query) {
+  const systemPrompt = `
+    You are 'CareerUp Mentor,' an extremely friendly, encouraging, and knowledgeable career assistant focused on youth employment and helping users find jobs aligned with SDG 8 (Decent Work and Economic Growth).
+
+    **Your persona and rules:**
+    1. Always be supportive, conversational, and motivational.
+    2. Keep answers concise (2-4 sentences is ideal) unless asked for details.
+    3. Never guarantee outcomes. Always include a tone of guidance and suggestion.
+    4. Focus advice on improving skills, building a portfolio, and networking.
+    5. The user's query is: "${query}"
+
+    Provide only the response text; do not include the disclaimer.
+    `;
+
+  const payload = {
+    contents: [{ parts: [{ text: systemPrompt }] }],
+  };
+
+  const response = await fetch(GEMINI_API_URL + GEMINI_API_KEY, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    throw new Error(`AI service failed with status ${response.status}.`);
+  }
+
+  const result = await response.json();
+
+  if (result.candidates && result.candidates[0].content.parts[0].text) {
+    return result.candidates[0].content.parts[0].text;
+  } else {
     throw new Error("AI returned an empty or malformed response.");
   }
 }

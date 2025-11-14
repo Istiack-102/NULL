@@ -138,7 +138,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginError = document.getElementById("login-error");
   const signupError = document.getElementById("signup-error");
   const profileSuccess = document.getElementById("profile-success");
-
+  //chatbot
+  const careerbotInput = document.getElementById("careerbot-input");
+  const careerbotAskBtn = document.getElementById("careerbot-ask-btn");
+  const careerbotChatWindow = document.getElementById("careerbot-chat-window");
   // --- 2. Helper Functions ---
 
   /**
@@ -850,6 +853,49 @@ document.addEventListener("DOMContentLoaded", () => {
       } finally {
         // Re-enable button after 5 seconds
         setTimeout(() => (roadmapStatus.style.display = "none"), 5000);
+      }
+    });
+  }
+
+  // (Req 5) CareerBot Assistant Logic
+  if (careerbotAskBtn) {
+    careerbotAskBtn.addEventListener("click", async () => {
+      const userQuery = careerbotInput.value.trim();
+
+      if (userQuery === "") return;
+
+      // 1. Display user message immediately
+      careerbotChatWindow.innerHTML += `<div class="chat-message user-message"><p><strong>You:</strong> ${userQuery}</p></div>`;
+      careerbotChatWindow.innerHTML += `<div class="chat-message bot-message" id="bot-typing"><span>Bot: </span><span class="typing-indicator">...</span></div>`;
+      careerbotInput.value = ""; // Clear the input field
+
+      // 2. Scroll to the bottom of the chat window
+      careerbotChatWindow.scrollTop = careerbotChatWindow.scrollHeight;
+
+      try {
+        // Send request to the backend
+        const response = await fetchWithAuth("/chatbot", {
+          method: "POST",
+          body: JSON.stringify({ query: userQuery }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Bot service failed.");
+        }
+
+        // 3. Update the last message with the bot's response
+        const typingIndicator = document.getElementById("bot-typing");
+        typingIndicator.remove(); // Remove the "typing..." indicator
+
+        careerbotChatWindow.innerHTML += `<div class="chat-message bot-message"><p><strong>Mentor:</strong> ${data.response}</p><p class="bot-disclaimer">${data.disclaimer}</p></div>`;
+      } catch (err) {
+        const typingIndicator = document.getElementById("bot-typing");
+        if (typingIndicator) typingIndicator.remove();
+
+        careerbotChatWindow.innerHTML += `<div class="chat-message error-message"><p><strong>Mentor:</strong> Error: ${err.message}</p></div>`;
+      } finally {
+        careerbotChatWindow.scrollTop = careerbotChatWindow.scrollHeight;
       }
     });
   }
