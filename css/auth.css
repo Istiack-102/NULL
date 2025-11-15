@@ -1,0 +1,225 @@
+/* --- OVERLAY THE ENTIRE LOGIN PAGE --- */
+.login-view,
+.register-view {
+  position: fixed; /* Takes over the entire screen */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--login-bg); /* Use the new login-specific background */
+  overflow: hidden; /* Hide anything outside the screen */
+  z-index: 2000;
+  animation: fadeIn 0.5s ease-out; /* Smooth entrance */
+}
+
+/* --- THE MAIN LOGIN/REGISTER CARD --- */
+.login-card,
+.register-card {
+  background: var(--login-card-bg); /* Semi-transparent */
+  backdrop-filter: blur(20px); /* Heavy Glass Effect */
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--login-border);
+  border-radius: 24px; /* Softly rounded */
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: var(--login-shadow);
+  position: relative;
+  z-index: 10; /* Ensure it's above background elements */
+  animation: floatUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.login-card h2,
+.register-card h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color); /* Highlight with primary color */
+}
+
+.login-card p,
+.register-card p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+/* --- ANIMATED BACKGROUND ELEMENTS (if you added them in HTML) --- */
+.aesthetic-bg-element {
+  position: absolute;
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  border-radius: 50%;
+  opacity: 0.2;
+  filter: blur(40px);
+  animation: moveGradient 20s infinite alternate;
+  z-index: 0;
+}
+
+.element-1 {
+  width: 300px;
+  height: 300px;
+  top: 10%;
+  left: 5%;
+  animation-duration: 25s;
+  animation-delay: -5s;
+}
+
+.element-2 {
+  width: 400px;
+  height: 400px;
+  bottom: 15%;
+  right: 10%;
+  animation-duration: 30s;
+  animation-delay: -10s;
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color),
+    var(--accent-color)
+  );
+}
+
+.element-3 {
+  width: 200px;
+  height: 200px;
+  top: 60%;
+  left: 30%;
+  animation-duration: 18s;
+  animation-delay: -2s;
+  background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+}
+
+@keyframes moveGradient {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30vw, 20vh) scale(1.1);
+  }
+  66% {
+    transform: translate(-20vw, -10vh) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* --- INPUTS WITH GLOW ON FOCUS --- */
+.login-card input,
+.register-card input {
+  background: rgba(255, 255, 255, 0.4); /* More transparent for glass look */
+  border: 1px solid var(--login-border);
+  color: var(--text-main);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  width: 100%;
+  transition: all 0.3s var(--ease);
+}
+
+.login-card input:focus,
+.register-card input:focus {
+  background: rgba(255, 255, 255, 0.9); /* More solid on focus */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--login-glow); /* The glow effect */
+  outline: none;
+}
+
+/* --- BUTTONS WITH ANIMATED GLOW --- */
+.login-card button,
+.register-card button {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(34, 211, 238, 0.4);
+}
+
+/* Animated button border glow */
+.login-card button::before,
+.register-card button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 60%
+  );
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.login-card button:hover::before,
+.register-card button:hover::before {
+  opacity: 1;
+  animation: buttonGlow 1.5s infinite linear;
+}
+
+@keyframes buttonGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Toggle Links --- */
+.toggle-auth-link {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.toggle-auth-link a {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* --- Dark Mode Overrides for Login --- */
+body.dark-mode .login-card input,
+body.dark-mode .register-card input {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+body.dark-mode .login-card input:focus,
+body.dark-mode .register-card input:focus {
+  background: rgba(20, 27, 48, 0.9);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--login-glow);
+}
+
+body.dark-mode .login-card h2,
+body.dark-mode .register-card h2 {
+  color: var(--primary-color); /* Maintain primary color */
+}

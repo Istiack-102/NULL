@@ -4,13 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Career Platform</title>
+    <head>
+    <link rel="stylesheet" href="css/variables.css" />
+    
+    <link rel="stylesheet" href="css/base.css" />
+    
+    <link rel="stylesheet" href="css/components.css" />
+    
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/auth.css" />
+    
     <link rel="stylesheet" href="styles.css" />
-    <link
+</head>
+    <link 
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   </head>
   <body>
+    <body>
+    <div class="aesthetic-bg-element element-1"></div>
+    <div class="aesthetic-bg-element element-2"></div>
+    <div class="aesthetic-bg-element element-3"></div>
     <!-- ======== HEADER / NAV BARS ======== -->
 
     <!-- LOGGED-IN NAVIGATION -->
@@ -20,8 +37,14 @@
         <div class="nav-links">
           <a href="#" id="nav-dashboard">Dashboard</a>
           <a href="#" id="nav-jobs-private">Jobs</a>
+
+          <a href="#" id="nav-roadmap">Roadmap</a>
+
+          <a href="#" id="nav-chatbot">CareerBot</a>
+
           <a href="#" id="nav-resources-private">Resources</a>
-          <a href="#" id="nav-profile">Profile</a>
+          <a href="#" id="nav-profile">Profile</a
+          ><button id="theme-toggle-btn" class="nav-icon-btn">🌙</button>
           <a href="#" id="nav-logout" class="nav-button-logout">Logout</a>
         </div>
       </div>
@@ -33,8 +56,11 @@
         <a href="#" class="nav-logo">CareerUp</a>
         <div class="nav-links">
           <a href="#" id="nav-jobs-public">Jobs</a>
-          <a href="#" id="nav-resources-public">Resources</a>
-          <a href="#" id="nav-login" class="nav-button">Login / Sign Up</a>
+          <a href="#" id="nav-resources-public">Resources</a
+          ><button id="theme-toggle-btn-public" class="nav-icon-btn">🌙</button>
+          <a href="#" id="nav-login" class="nav-button nv-btn"
+            >Login / Sign Up</a
+          >
         </div>
       </div>
     </nav>
@@ -55,10 +81,16 @@
               <label for="login-email">Email</label>
               <input type="email" id="login-email" required />
             </div>
-            <div class="form-group">
-              <label for="login-pass">Password</label>
+            <div class="form-group password-container">
+              <!-- Wrap in this container -->
+              <label for="login-pass" data-key="login_pass_label"
+                >Password</label
+              >
               <input type="password" id="login-pass" required />
+              <!-- Add this button -->
+              <span class="password-toggle-btn" id="toggle-login-pass">👀</span>
             </div>
+
             <p id="login-error" class="error-message">Error message</p>
             <button type="submit" class="button-primary" id="login-btn">
               Login
@@ -89,9 +121,16 @@
               <label for="signup-email">Email</label>
               <input type="email" id="signup-email" required />
             </div>
-            <div class="form-group">
-              <label for="signup-pass">Password (min 6 chars)</label>
+            <div class="form-group password-container">
+              <!-- Wrap in this container -->
+              <label for="signup-pass" data-key="signup_pass_label"
+                >Password (min 6 chars)</label
+              >
               <input type="password" id="signup-pass" required minlength="6" />
+              <!-- Add this button -->
+              <span class="password-toggle-btn" id="toggle-signup-pass"
+                >👀</span
+              >
             </div>
             <div class="form-group">
               <label for="signup-education">Education Level / Department</label>
@@ -142,7 +181,6 @@
         </header>
 
         <div class="dashboard-grid">
-          <!-- Profile Quick View -->
           <div class="card card-profile">
             <h3>Welcome, <span id="dash-name">User</span>!</h3>
             <p id="dash-email">user@email.com</p>
@@ -155,14 +193,66 @@
             <ul id="dash-skills">
               <li>Loading...</li>
             </ul>
-            <a href="#" class="button-secondary" id="dash-profile-link"
-              >Edit Profile</a
-            >
+            <div style="display: flex; gap: 10px; margin-top: 1rem">
+              <a href="#" class="button-secondary" id="dash-profile-link"
+                >Edit Profile</a
+              >
+              <button
+                id="download-cv-btn"
+                class="button-primary"
+                style="margin-top: 0"
+              >
+                📄 Download CV
+              </button>
+            </div>
           </div>
 
-          <!-- Career Roadmap (Req 4 Placeholder) -->
-          <div class="card card-roadmap">
-            <h3>Your Career Roadmap (Req 4)</h3>
+          <div class="dashboard-right-column">
+            <div class="card card-analytics">
+              <div class="analytics-header">
+                <h3>🧬 Your Skill DNA</h3>
+                <span class="badge-pro">Dynamic Analysis</span>
+              </div>
+              <div
+                class="chart-wrapper"
+                style="height: 300px; position: relative"
+              >
+                <canvas id="radarChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="split-section">
+          <div class="card card-list" id="dash-jobs" style="margin-bottom: 0">
+            <h3>Recommended Jobs</h3>
+            <div id="dash-jobs-list" class="item-list-container">
+              <p>Loading recommendations...</p>
+            </div>
+          </div>
+
+          <div
+            class="card card-list"
+            id="dash-resources"
+            style="margin-bottom: 0"
+          >
+            <h3>Recommended Learning</h3>
+            <div id="dash-resources-list" class="item-list-container">
+              <p>Loading recommendations...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- roadmapppppppppppp -->
+      <section class="view" id="roadmap-view">
+        <header class="page-header">
+          <h2>AI Career Roadmap</h2>
+          <p>Generate a step-by-step plan to reach your dream job.</p>
+        </header>
+
+        <div style="max-width: 800px; margin: 0 auto">
+          <div class="card">
+            <h3>Create Your Plan</h3>
             <form id="roadmap-form">
               <div class="form-group">
                 <label for="roadmap-target-role">Target Job Role</label>
@@ -194,53 +284,60 @@
                 style="display: none"
               ></p>
             </form>
-            <div id="roadmap-output" class="card-output">
+
+            <div
+              id="roadmap-output"
+              class="card-output"
+              style="margin-top: 2rem"
+            >
               <p>
                 Your personalized roadmap will appear here after generation.
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
-          <!-- Recommended Jobs -->
-          <div class="card card-list" id="dash-jobs">
-            <h3>Recommended Jobs</h3>
-            <div id="dash-jobs-list" class="item-list-container">
-              <p>Loading recommendations...</p>
-            </div>
-          </div>
+      <!-- chatbotviewwwwwwww -->
+      <section class="view" id="chatbot-view">
+        <header class="page-header">
+          <h2>Career Mentor AI</h2>
+          <p>Your 24/7 personal career assistant. Ask anything!</p>
+        </header>
 
-          <!-- Recommended Resources -->
-          <div class="card card-list" id="dash-resources">
-            <h3>Recommended Learning</h3>
-            <div id="dash-resources-list" class="item-list-container">
-              <p>Loading recommendations...</p>
-            </div>
-          </div>
+        <div style="max-width: 800px; margin: 0 auto">
+          <div class="card">
+            <h3>Chat Session</h3>
 
-          <!-- CareerBot (Req 5 Placeholder) -->
-          <div class="card card-careerbot">
-            <h3>CareerBot: Your Mentor Assistant (Req 5)</h3>
-            <div id="careerbot-chat-window" class="card-output">
+            <div
+              id="careerbot-chat-window"
+              class="card-output"
+              style="height: 500px"
+            >
               <p>
                 Hello! I'm your Career Mentor. Ask me anything about skills,
                 projects, or getting an internship!
               </p>
             </div>
 
-            <div class="form-group" style="margin-top: 1rem">
+            <div
+              class="form-group"
+              style="margin-top: 1rem; display: flex; gap: 10px"
+            >
               <input
                 type="text"
                 id="careerbot-input"
-                placeholder="e.g., Which roles fit my skills?"
+                placeholder="e.g., How do I prepare for a React interview?"
+                style="flex-grow: 1"
               />
+              <button
+                id="careerbot-ask-btn"
+                class="button-primary"
+                style="width: auto; margin-top: 0"
+              >
+                Send
+              </button>
             </div>
-            <button
-              id="careerbot-ask-btn"
-              class="button-primary"
-              style="width: 100%"
-            >
-              Ask Bot
-            </button>
           </div>
         </div>
       </section>
@@ -265,7 +362,7 @@
             <form id="profile-details-form">
               <div class="form-group">
                 <label for="profile-name">Full Name</label>
-                <input type="text" id="profile-name" />
+                <input type="text" id="profile-name" disabled />
               </div>
               <div class="form-group">
                 <label for="profile-email">Email (cannot change)</label>
@@ -470,7 +567,84 @@
           <p>Loading resources...</p>
         </div>
       </section>
+
+      <!-- for admin panel -->
+      <section class="view" id="admin-view">
+        <header class="page-header">
+          <h2>Admin Panel</h2>
+          <p>Manage Jobs and Resources.</p>
+        </header>
+
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>➕ Add Job</h3>
+            <form id="admin-add-job">
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="adj-title"
+                  placeholder="Job Title"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="adj-company"
+                  placeholder="Company"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="adj-location"
+                  placeholder="Location"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <select id="adj-type">
+                  <option>Full-time</option>
+                  <option>Internship</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="adj-skills"
+                  placeholder="Skills (e.g. React, Node)"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="adj-exp"
+                  placeholder="Experience (e.g. Fresher)"
+                  required
+                />
+              </div>
+              <button type="submit" class="button-primary">Post Job</button>
+            </form>
+          </div>
+
+          <div class="card">
+            <h3>🗑️ Manage Jobs</h3>
+            <div
+              id="admin-job-list"
+              class="item-list-container"
+              style="max-height: 400px; overflow-y: auto"
+            >
+              <p>Loading...</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+
+    <!-- robot -->
+    <button id="fab-chatbot" title="Chat with AI Mentor">🤖</button>
 
     <script src="script.js"></script>
   </body>

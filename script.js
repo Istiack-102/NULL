@@ -1,10 +1,81 @@
 /**
- * Career Platform - Full App Logic
- * This file handles all frontend interactivity, state, and API calls.
+ * ============================================================
+ * CAREER PLATFORM - MAIN JAVASCRIPT
+ * ============================================================
+ * 1. Global Constants & Utilities
+ * 2. UI & Formatting Helpers (HTML Generators, Theme, PDF)
+ * 3. State Management (Router, Login/Logout)
+ * 4. Data Loading Functions (API Calls)
+ * 5. Initialization & Event Listeners (DOM Ready)
+ * ============================================================
  */
+
+// ==========================================
+// 1. GLOBAL CONSTANTS & UTILITIES
+// ==========================================
+
+const API_URL = "http://localhost:3001";
+
 /**
- * Converts the AI's raw markdown text into styled HTML.
- * This function is critical for making the Roadmap look professional.
+ * Helper to make secure API calls
+ */
+async function fetchWithAuth(url, options = {}) {
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  options.headers = options.headers || {};
+  if (token) {
+    options.headers["Authorization"] = `Bearer ${token}`;
+  }
+  if (options.body) {
+    options.headers["Content-Type"] = "application/json";
+  }
+
+  return fetch(API_URL + url, options);
+}
+
+/**
+ * Toggles Dark/Light Mode
+ */
+function setTheme(themeName) {
+  const themeBtn = document.getElementById("theme-toggle-btn");
+  const themeBtnPublic = document.getElementById("theme-toggle-btn-public");
+
+  if (themeName === "dark") {
+    document.body.classList.add("dark-mode");
+    if (themeBtn) themeBtn.textContent = "☀️";
+    if (themeBtnPublic) themeBtnPublic.textContent = "☀️";
+    localStorage.setItem("theme", "dark");
+  } else {
+    document.body.classList.remove("dark-mode");
+    if (themeBtn) themeBtn.textContent = "🌙";
+    if (themeBtnPublic) themeBtnPublic.textContent = "🌙";
+    localStorage.setItem("theme", "light");
+  }
+}
+
+/**
+ * Toggles Password Visibility
+ */
+function togglePasswordVisibility(inputId, iconId) {
+  const input = document.getElementById(inputId);
+  const icon = document.getElementById(iconId);
+
+  if (input.type === "password") {
+    input.type = "text";
+    icon.textContent = "🙈";
+  } else {
+    input.type = "password";
+    icon.textContent = "👀";
+  }
+}
+
+// ==========================================
+// 2. UI & FORMATTING HELPERS
+// ==========================================
+
+/**
+ * Converts Markdown to HTML for Roadmap
  */
 function renderRoadmap(markdownText) {
   let html = "";
@@ -12,799 +83,796 @@ function renderRoadmap(markdownText) {
 
   for (const line of lines) {
     const trimmedLine = line.trim();
-
-    // 1. Markdown Headers (##, ###)
     if (trimmedLine.startsWith("## ")) {
-      // Converts '## PHASE 1' to '<h2>PHASE 1</h2>'
       html += `<h2 class="roadmap-header">${trimmedLine
         .substring(3)
         .trim()}</h2>`;
     } else if (trimmedLine.startsWith("### ")) {
-      // Converts '### Focus' to '<h4>Focus</h4>'
       html += `<h4 class="roadmap-subheader">${trimmedLine
         .substring(4)
         .trim()}</h4>`;
-    }
-
-    // 2. Lists (* or -)
-    else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
+    } else if (trimmedLine.startsWith("* ") || trimmedLine.startsWith("- ")) {
       const content = trimmedLine.substring(2).trim();
-      // Finds content inside **bold** tags for emphasis
       const styledContent = content.replace(
         /\*\*(.*?)\*\*/g,
         "<strong>$1</strong>"
       );
-
-      // If the last thing added wasn't an <ul>, start one
       if (!html.endsWith("<ul>") && !html.endsWith("</ul>")) {
         html += '<ul class="roadmap-list">';
       }
       html += `<li>${styledContent}</li>`;
-    }
-
-    // 3. Horizontal Rule (---)
-    else if (trimmedLine.startsWith("---")) {
+    } else if (trimmedLine.startsWith("---")) {
       html += '<hr class="roadmap-divider">';
-    }
-
-    // 4. Tables (We simplify table rendering for now, focusing on headers)
-    else if (trimmedLine.includes("| :--- |")) {
-      // Starts a table section title
+    } else if (trimmedLine.includes("| :--- |")) {
       html +=
         '<h4 class="roadmap-subheader" style="margin-top: 1.5rem;">Job Application Timeline</h4>';
-    }
-
-    // 5. Paragraphs (Any other text, or bold text)
-    else if (trimmedLine.length > 0) {
+    } else if (trimmedLine.length > 0) {
       const styledContent = trimmedLine.replace(
         /\*\*(.*?)\*\*/g,
         "<strong>$1</strong>"
       );
-
-      // If we were building a list, close it first
-      if (html.endsWith("</ul>")) {
-        html += "</ul>";
-      }
-      // Add the paragraph content
+      if (html.endsWith("</ul>")) html += "</ul>";
       html += `<p class="roadmap-paragraph">${styledContent}</p>`;
     }
-
-    // Close any lingering UL tag
-    if (trimmedLine === "" && html.endsWith("</ul>")) {
-      html += "</ul>";
-    }
+    if (trimmedLine === "" && html.endsWith("</ul>")) html += "</ul>";
   }
-
-  // Final check to close the UL tag if the loop ended mid-list
-  if (html.endsWith("</ul>")) {
-    html += "</ul>";
-  }
-
+  if (html.endsWith("</ul>")) html += "</ul>";
   return html;
 }
-// Wait for the DOM (HTML) to be fully loaded
-document.addEventListener("DOMContentLoaded", () => {
-  // --- 1. State & Constants ---
 
-  // API server location
-  const API_URL = "http://localhost:3001";
+/**
+ * Generates HTML for a single job item
+ */
+function generateJobHTML(job, showMatchPercent = false) {
+  let skillsHTML = "";
+  if (job.required_skills) {
+    skillsHTML = job.required_skills
+      .split(",")
+      .map((skill) => `<span class="skill-tag">${skill.trim()}</span>`)
+      .join("");
+  }
 
-  // We have 7 main "pages" (views)
-  const views = {
-    login: document.getElementById("login-view"),
-    signup: document.getElementById("signup-view"),
-    dashboard: document.getElementById("dashboard-view"),
-    profile: document.getElementById("profile-view"),
-    jobs: document.getElementById("jobs-view"),
-    resources: document.getElementById("resources-view"),
-  };
+  let matchHTML = "";
+  if (showMatchPercent) {
+    const { matchPercent, matches, missing, recommendedResources } = job;
+    let barColorClass = "low";
+    if (matchPercent > 70) barColorClass = "high";
+    else if (matchPercent > 40) barColorClass = "medium";
 
-  // We have 2 nav bars
-  const navLoggedIn = document.getElementById("nav-logged-in");
-  const navLoggedOut = document.getElementById("nav-logged-out");
+    matchHTML = `
+        <div class="match-score-wrapper">
+            <div class="match-header">
+                <span>Match Score</span>
+                <span style="color: var(--primary-color)">${matchPercent}%</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill ${barColorClass}" style="width: ${matchPercent}%"></div>
+            </div>
+            ${
+              missing && missing.length > 0
+                ? `<p class="missing-skills-text">⚠️ Missing: ${missing
+                    .slice(0, 3)
+                    .join(", ")}</p>`
+                : ""
+            }
+        </div>`;
+  }
 
-  // All navigation links
-  const navLinks = {
-    // Public
-    logo: document.getElementById("logo-link"),
-    publicJobs: document.getElementById("nav-jobs-public"),
-    publicResources: document.getElementById("nav-resources-public"),
-    login: document.getElementById("nav-login"),
-    gotoSignup: document.getElementById("goto-signup-link"),
-    gotoLogin: document.getElementById("goto-login-link"),
-    // Private
-    dashboard: document.getElementById("nav-dashboard"),
-    privateJobs: document.getElementById("nav-jobs-private"),
-    privateResources: document.getElementById("nav-resources-private"),
-    profile: document.getElementById("nav-profile"),
-    logout: document.getElementById("nav-logout"),
-  };
+  return `
+    <div class="list-item">
+        <div class="item-header">
+            <h3>${job.job_title}</h3>
+            <span>${job.location} | ${job.job_type}</span>
+        </div>
+        <p class="item-company">${job.company} (Exp: ${
+    job.experience_level
+  })</p>
+        <div class="item-tags">${skillsHTML}</div>
+        ${matchHTML}
+        <a href="https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
+          job.job_title
+        )} ${encodeURIComponent(job.company)}" 
+           target="_blank" class="apply-link">Search on LinkedIn</a>
+    </div>`;
+}
 
-  // Forms
-  const loginForm = document.getElementById("login-form");
-  const signupForm = document.getElementById("signup-form");
-  const profileDetailsForm = document.getElementById("profile-details-form");
-  const profileSkillsForm = document.getElementById("profile-skills-form");
-  const profileCvForm = document.getElementById("profile-cv-form");
-  ////injected by me
-  const analyzeCvBtn = document.getElementById("analyze-cv-btn");
-  const analyzeCvStatus = document.getElementById("analyze-cv-status");
-  const jobFilterBtn = document.getElementById("job-filter-btn");
-  /// four
-  const roadmapForm = document.getElementById("roadmap-form");
-  const roadmapOutput = document.getElementById("roadmap-output");
-  const roadmapStatus = document.getElementById("roadmap-status");
-  // Error/Success Message containers
-  const loginError = document.getElementById("login-error");
-  const signupError = document.getElementById("signup-error");
+/**
+ * Generates HTML for a single resource item
+ */
+function generateResourceHTML(resource, showMatchCount = false) {
+  let skillsHTML = "";
+  if (resource.related_skills) {
+    skillsHTML = resource.related_skills
+      .split(",")
+      .map((skill) => `<span class="skill-tag">${skill.trim()}</span>`)
+      .join("");
+  }
+
+  let matchHTML = "";
+  if (showMatchCount && resource.matchCount > 0) {
+    matchHTML = `<div class="item-matches"><span class="skill-tag-match">Recommended for You</span></div>`;
+  }
+
+  return `
+    <div class="list-item">
+        <div class="item-header">
+            <h3><a href="${resource.url}" target="_blank">${resource.title}</a></h3>
+            <span>${resource.platform} | ${resource.cost_indicator}</span>
+        </div>
+        <div class="item-tags">${skillsHTML}</div>
+        ${matchHTML}
+    </div>`;
+}
+
+/**
+ * Generates PDF using HTML Templates
+ */
+async function generatePDF() {
+  try {
+    const response = await fetchWithAuth("/profile");
+    if (!response.ok) throw new Error("Could not fetch profile data");
+    const data = await response.json();
+
+    const element = document.createElement("div");
+    element.innerHTML = `
+        <div style="font-family: 'Helvetica', sans-serif; color: #333; padding: 40px; max-width: 800px; margin: 0 auto;">
+            <div style="border-bottom: 2px solid #3b82f6; padding-bottom: 20px; margin-bottom: 20px;">
+                <h1 style="color: #3b82f6; font-size: 32px; margin: 0;">${
+                  data.full_name || "Your Name"
+                }</h1>
+                <h3 style="font-weight: normal; margin: 5px 0; color: #555;">${
+                  data.career_track || "Career Track"
+                }</h3>
+                <p style="font-size: 12px; color: #777; margin-top: 10px;">
+                    Email: ${data.email} • Experience: ${data.experience_level}
+                </p>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <h4 style="background: #eee; padding: 5px 10px; border-left: 4px solid #3b82f6; margin-bottom: 10px;">PROFESSIONAL SUMMARY</h4>
+                <p style="font-size: 12px; line-height: 1.6;">${
+                  data.experience_notes || "No summary provided yet."
+                }</p>
+            </div>
+            <div style="margin-bottom: 25px;">
+                <h4 style="background: #eee; padding: 5px 10px; border-left: 4px solid #3b82f6; margin-bottom: 10px;">TECHNICAL SKILLS</h4>
+                <p style="font-size: 12px;">${
+                  data.skills || "No skills listed."
+                }</p>
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <div style="flex: 1;">
+                    <h4 style="background: #eee; padding: 5px 10px; border-left: 4px solid #3b82f6; margin-bottom: 10px;">EDUCATION</h4>
+                    <p style="font-size: 12px;">${
+                      data.education_level || "Not specified"
+                    }</p>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="background: #eee; padding: 5px 10px; border-left: 4px solid #3b82f6; margin-bottom: 10px;">TARGET ROLES</h4>
+                    <p style="font-size: 12px;">${
+                      data.target_roles || "Open to opportunities"
+                    }</p>
+                </div>
+            </div>
+            <div style="margin-top: 50px; text-align: center; font-size: 10px; color: #aaa; border-top: 1px solid #eee; padding-top: 10px;">Generated by CareerUp Platform</div>
+        </div>`;
+
+    const opt = {
+      margin: 0.5,
+      filename: `${data.full_name.replace(/\s+/g, "_")}_CV.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+
+    html2pdf().set(opt).from(element).save();
+  } catch (err) {
+    console.error("Error generating PDF:", err);
+    alert("Failed to generate CV.");
+  }
+}
+
+/**
+ * Toast Notification Helpers
+ */
+function showProfileSuccess(message) {
   const profileSuccess = document.getElementById("profile-success");
-  //chatbot
-  const careerbotInput = document.getElementById("careerbot-input");
-  const careerbotAskBtn = document.getElementById("careerbot-ask-btn");
-  const careerbotChatWindow = document.getElementById("careerbot-chat-window");
-  // requirement 6
-  const generateSummaryBtn = document.getElementById("generate-summary-btn");
-  const summaryStatus = document.getElementById("summary-status");
-  // --- 2. Helper Functions ---
-
-  /**
-   * The "Router"
-   * Hides all views, then shows the one we want.
-   * Updates the active tab in the navbar.
-   * @param {string} viewName - The key of the view to show (e.g., 'login', 'dashboard')
-   */
-  function showView(viewName) {
-    // Hide all views
-    for (let key in views) {
-      if (views[key]) {
-        views[key].classList.remove("active-view");
-      }
-    }
-    // Show the one we want
-    if (views[viewName]) {
-      views[viewName].classList.add("active-view");
-    }
-
-    // Update active nav links
-    const isLoggedIn = !!localStorage.getItem("token");
-    const navId = isLoggedIn ? "nav-logged-in" : "nav-logged-out";
-    const activeNav = document.getElementById(navId);
-
-    if (activeNav) {
-      // Remove 'active' from all links
-      activeNav
-        .querySelectorAll("a")
-        .forEach((a) => a.classList.remove("active"));
-
-      // Add 'active' to the correct link
-      let activeLink;
-      switch (viewName) {
-        case "dashboard":
-          activeLink = document.getElementById("nav-dashboard");
-          break;
-        case "jobs":
-          activeLink = isLoggedIn
-            ? document.getElementById("nav-jobs-private")
-            : document.getElementById("nav-jobs-public");
-          break;
-        case "resources":
-          activeLink = isLoggedIn
-            ? document.getElementById("nav-resources-private")
-            : document.getElementById("nav-resources-public");
-          break;
-        case "profile":
-          activeLink = document.getElementById("nav-profile");
-          break;
-        case "login":
-        case "signup":
-          activeLink = document.getElementById("nav-login");
-          break;
-      }
-      if (activeLink) {
-        activeLink.classList.add("active");
-      }
-    }
-  }
-
-  /**
-   * Helper to make secure API calls
-   * Automatically adds the 'Authorization' token to the request header
-   * @param {string} url - The API endpoint
-   * @param {object} options - The fetch options (e.g., method, body)
-   * @returns {Promise} - The fetch promise
-   */
-  async function fetchWithAuth(url, options = {}) {
-    const token = localStorage.getItem("token");
-
-    // Ensure headers object exists
-    options.headers = options.headers || {};
-
-    // Add auth token if we have one
-    if (token) {
-      options.headers["Authorization"] = `Bearer ${token}`;
-    }
-
-    // Add content-type if a body is present
-    if (options.body) {
-      options.headers["Content-Type"] = "application/json";
-    }
-
-    return fetch(API_URL + url, options);
-  }
-
-  /**
-   * Shows the "Logged In" state (nav bar) and loads dashboard data
-   */
-  function showLoggedInState() {
-    navLoggedIn.style.display = "flex";
-    navLoggedOut.style.display = "none";
-    // When we log in, always go to the dashboard
-    showView("dashboard");
-    loadDashboardData();
-  }
-
-  /**
-   * Shows the "Logged Out" state (nav bar) and shows the login page
-   */
-  function showLoggedOutState() {
-    navLoggedIn.style.display = "none";
-    navLoggedOut.style.display = "flex";
-    localStorage.removeItem("token"); // Clear the token
-    showView("login");
-  }
-
-  /**
-   * (NEW) Generates HTML for a single job item
-   * @param {object} job - The job data from the API
-   * @param {boolean} showMatchPercent - (Req 2) If true, shows the match score bar
-   * @returns {string} - The HTML string for the job
-   */
-  function generateJobHTML(job, showMatchPercent = false) {
-    let skillsHTML = "";
-    if (job.required_skills) {
-      skillsHTML = job.required_skills
-        .split(",")
-        .map((skill) => `<span class="skill-tag">${skill.trim()}</span>`)
-        .join("");
-    }
-
-    // --- NEW (Req 2) Match Percentage UI ---
-    let matchHTML = "";
-    if (showMatchPercent) {
-      const { matchPercent, matches, missing, recommendedResources } = job;
-
-      // Determine progress bar color
-      let barColorClass = "low";
-      if (matchPercent > 70) barColorClass = "high";
-      else if (matchPercent > 40) barColorClass = "medium";
-
-      matchHTML = `
-                <div class="match-score">
-                    <div class="match-score-header">
-                        <strong>Match Score: ${matchPercent}%</strong>
-                        <span class="match-score-bar ${barColorClass}" style="width: ${matchPercent}%"></span>
-                    </div>
-                    <div class="match-details">
-            `;
-
-      if (matches && matches.length > 0) {
-        matchHTML += `<p class="match-skills"><strong>Matches:</strong> ${matches.join(
-          ", "
-        )}</p>`;
-      }
-      if (missing && missing.length > 0) {
-        matchHTML += `<p class="missing-skills"><strong>Missing:</strong> ${missing.join(
-          ", "
-        )}</p>`;
-
-        // --- NEW (Req 3) Skill Gap UI ---
-        if (recommendedResources && recommendedResources.length > 0) {
-          matchHTML += `
-                        <div class="skill-gap-recommendations">
-                            <strong>Skill Gap:</strong> We recommend these resources:
-                            <ul>
-                                ${recommendedResources
-                                  .map(
-                                    (res) => `
-                                    <li>
-                                        <a href="${res.url}" target="_blank">${res.title}</a> (${res.platform})
-                                    </li>
-                                `
-                                  )
-                                  .join("")}
-                            </ul>
-                        </div>
-                    `;
-        }
-        // --- End of New (Req 3) ---
-      }
-
-      matchHTML += `</div></div>`;
-    }
-    // --- End of new UI ---
-
-    return `
-            <div class="list-item">
-                <div class="item-header">
-                    <h3>${job.job_title}</h3>
-                    <span>${job.location} | ${job.job_type}</span>
-                </div>
-                <p class="item-company">${job.company} (Exp: ${
-      job.experience_level
-    })</p>
-                <div class="item-tags">
-                    ${skillsHTML}
-                </div>
-                ${matchHTML} <!-- This will be empty if showMatchPercent is false -->
-                <a href="https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(
-                  job.job_title
-                )} ${encodeURIComponent(
-      job.company
-    )}" target="_blank" class="apply-link">
-                    Search on LinkedIn
-                </a>
-            </div>
-        `;
-  }
-
-  /**
-   * Generates HTML for a single resource item
-   * @param {object} resource - The resource data from the API
-   * @param {boolean} showMatchCount - If true, shows a "Recommended" tag
-   * @returns {string} - The HTML string for the resource
-   */
-  function generateResourceHTML(resource, showMatchCount = false) {
-    let skillsHTML = "";
-    if (resource.related_skills) {
-      skillsHTML = resource.related_skills
-        .split(",")
-        .map((skill) => `<span class="skill-tag">${skill.trim()}</span>`)
-        .join("");
-    }
-
-    // Show a "Recommended" tag if it's on the dashboard
-    let matchHTML = "";
-    if (showMatchCount && resource.matchCount > 0) {
-      matchHTML = `<div class="item-matches">
-                            <span class="skill-tag-match">Recommended for You</span>
-                         </div>`;
-    }
-
-    return `
-            <div class="list-item">
-                <div class="item-header">
-                    <h3><a href="${resource.url}" target="_blank">${resource.title}</a></h3>
-                    <span>${resource.platform} | ${resource.cost_indicator}</span>
-                </div>
-                <div class="item-tags">
-                    ${skillsHTML}
-                </div>
-                ${matchHTML}
-            </div>
-        `;
-  }
-
-  /**
-   * Shows a temporary success message on the profile page
-   * @param {string} message - The message to show
-   */
-  function showProfileSuccess(message) {
+  if (profileSuccess) {
     profileSuccess.textContent = message;
     profileSuccess.style.display = "block";
-    // ... (rest of the function) ...
     setTimeout(() => {
       profileSuccess.style.display = "none";
     }, 3000);
   }
+}
 
-  /**
-   * Shows a temporary error message on the profile page
-   * @param {string} message - The message to show
-   */
-  function showProfileError(message) {
+function showProfileError(message) {
+  const profileSuccess = document.getElementById("profile-success");
+  if (profileSuccess) {
     profileSuccess.textContent = message;
     profileSuccess.style.display = "block";
     profileSuccess.style.backgroundColor = "var(--error-light)";
     profileSuccess.style.color = "var(--error-color)";
     profileSuccess.style.border = "1px solid var(--error-color)";
-
     setTimeout(() => {
       profileSuccess.style.display = "none";
-    }, 3000); // Hide after 3 seconds
+    }, 3000);
+  }
+}
+
+// ==========================================
+// 3. STATE MANAGEMENT & ROUTING
+// ==========================================
+
+/**
+ * Shows the "Logged In" state
+ */
+function showLoggedInState() {
+  const navLoggedIn = document.getElementById("nav-logged-in");
+  const navLoggedOut = document.getElementById("nav-logged-out");
+
+  if (navLoggedIn) navLoggedIn.style.display = "flex";
+  if (navLoggedOut) navLoggedOut.style.display = "none";
+
+  showView("dashboard");
+  loadDashboardData();
+}
+
+/**
+ * Shows the "Logged Out" state
+ */
+function showLoggedOutState() {
+  const navLoggedIn = document.getElementById("nav-logged-in");
+  const navLoggedOut = document.getElementById("nav-logged-out");
+
+  if (navLoggedIn) navLoggedIn.style.display = "none";
+  if (navLoggedOut) navLoggedOut.style.display = "flex";
+
+  localStorage.removeItem("token");
+  sessionStorage.removeItem("token");
+
+  showView("login");
+}
+
+/**
+ * The "Router" - Switches views
+ */
+function showView(viewName) {
+  const views = {
+    login: document.getElementById("login-view"),
+    signup: document.getElementById("signup-view"),
+    dashboard: document.getElementById("dashboard-view"),
+    roadmap: document.getElementById("roadmap-view"),
+    chatbot: document.getElementById("chatbot-view"),
+    profile: document.getElementById("profile-view"),
+    jobs: document.getElementById("jobs-view"),
+    resources: document.getElementById("resources-view"),
+    admin: document.getElementById("admin-view"),
+  };
+
+  // Hide all
+  for (let key in views) {
+    if (views[key]) views[key].classList.remove("active-view");
+  }
+  // Show target
+  if (views[viewName]) views[viewName].classList.add("active-view");
+
+  // Update active nav links
+  const isLoggedIn = !!(
+    localStorage.getItem("token") || sessionStorage.getItem("token")
+  );
+  const navId = isLoggedIn ? "nav-logged-in" : "nav-logged-out";
+  const activeNav = document.getElementById(navId);
+
+  if (activeNav) {
+    activeNav
+      .querySelectorAll("a")
+      .forEach((a) => a.classList.remove("active"));
+
+    let linkId = "";
+    if (viewName === "dashboard") linkId = "nav-dashboard";
+    else if (viewName === "roadmap") linkId = "nav-roadmap";
+    else if (viewName === "chatbot") linkId = "nav-chatbot";
+    else if (viewName === "profile") linkId = "nav-profile";
+    else if (viewName === "jobs")
+      linkId = isLoggedIn ? "nav-jobs-private" : "nav-jobs-public";
+    else if (viewName === "resources")
+      linkId = isLoggedIn ? "nav-resources-private" : "nav-resources-public";
+    else if (viewName === "login" || viewName === "signup")
+      linkId = "nav-login";
+
+    if (linkId) {
+      const activeLink = document.getElementById(linkId);
+      if (activeLink) activeLink.classList.add("active");
+    }
+  }
+}
+
+// ==========================================
+// 4. DATA LOADING FUNCTIONS
+// ==========================================
+
+/**
+ * Main Controller: Loads all Dashboard Data
+ */
+async function loadDashboardData() {
+  try {
+    const response = await fetchWithAuth("/dashboard");
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403)
+        showLoggedOutState();
+      throw new Error("Failed to load dashboard data");
+    }
+    const data = await response.json();
+
+    // 1. Update UI Sections
+    updateProfileUI(data.user);
+    updateStats(data);
+    renderLists(data);
+
+    // 2. Render Advanced Charts
+    renderSkillCharts(data.user.skills, data.jobs);
+  } catch (err) {
+    console.error("Error loading dashboard:", err);
+  }
+}
+
+function updateProfileUI(user) {
+  const dashName = document.getElementById("dash-name");
+  const dashTrack = document.getElementById("dash-track");
+  const dashEmail = document.getElementById("dash-email");
+  const dashSkills = document.getElementById("dash-skills");
+
+  if (dashName) dashName.textContent = user.name || "User";
+  if (dashTrack) dashTrack.textContent = user.track || "No track selected";
+  if (dashEmail) dashEmail.textContent = user.email || "No email";
+
+  if (dashSkills) {
+    dashSkills.innerHTML =
+      user.skills.length > 0
+        ? user.skills.map((skill) => `<li>${skill}</li>`).join("")
+        : `<li style="background: none; border: 1px dashed #ccc; color: #777; width: 100%; text-align: center;">No skills added.</li>`;
+  }
+}
+
+function updateStats(data) {
+  let score = 20;
+  if (data.user.skills.length > 0) score += 40;
+  if (data.user.track) score += 20;
+  if (data.user.email) score += 20;
+
+  const scoreEl = document.getElementById("stat-score");
+  if (scoreEl) scoreEl.textContent = score + "%";
+
+  const jobCountEl = document.getElementById("stat-jobs");
+  if (jobCountEl) jobCountEl.textContent = data.jobs.length;
+
+  const appCountEl = document.getElementById("stat-apps");
+  if (appCountEl)
+    appCountEl.textContent = localStorage.getItem("myApplications") || "0";
+}
+
+function renderLists(data) {
+  const jobsList = document.getElementById("dash-jobs-list");
+  const resourcesList = document.getElementById("dash-resources-list");
+
+  const highMatchJobs = data.jobs.filter((job) => job.matchPercent >= 50);
+
+  if (jobsList) {
+    jobsList.innerHTML =
+      highMatchJobs.length > 0
+        ? highMatchJobs
+            .slice(0, 3)
+            .map((job) => generateJobHTML(job, true))
+            .join("")
+        : `<div style="text-align:center; padding:1rem; color:#777;"><p>No high-match jobs found.</p></div>`;
   }
 
-  // --- 3. Data Loading Functions (API Calls) ---
+  if (resourcesList) {
+    resourcesList.innerHTML =
+      data.resources.length > 0
+        ? data.resources
+            .slice(0, 3)
+            .map((res) => generateResourceHTML(res, true))
+            .join("")
+        : "<p>No resources found.</p>";
+  }
+}
 
-  /**
-   * (Req 6) Load all data for the dashboard
-   */
-  async function loadDashboardData() {
-    const jobsList = document.getElementById("dash-jobs-list");
-    const resourcesList = document.getElementById("dash-resources-list");
-    const dashName = document.getElementById("dash-name");
-    const dashTrack = document.getElementById("dash-track");
-    const dashEmail = document.getElementById("dash-email");
-    const dashSkills = document.getElementById("dash-skills");
+function renderSkillCharts(userSkills, jobs) {
+  let allMissing = [];
+  jobs.slice(0, 5).forEach((job) => {
+    if (job.missing) allMissing.push(...job.missing);
+  });
 
-    try {
-      const response = await fetchWithAuth("/dashboard");
-      if (!response.ok) {
-        // If token is bad, log them out
-        if (response.status === 401 || response.status === 403) {
-          showLoggedOutState();
-        }
-        throw new Error("Failed to load dashboard data");
+  const counts = {};
+  allMissing.forEach((x) => {
+    counts[x] = (counts[x] || 0) + 1;
+  });
+  const sortedMissing = Object.keys(counts)
+    .sort((a, b) => counts[b] - counts[a])
+    .slice(0, 3);
+
+  // RENDER RADAR CHART
+  const taxonomy = {
+    Frontend: [
+      "javascript",
+      "react",
+      "html",
+      "css",
+      "vue",
+      "angular",
+      "tailwind",
+      "typescript",
+    ],
+    Backend: [
+      "node",
+      "python",
+      "java",
+      "php",
+      "sql",
+      "mysql",
+      "mongodb",
+      "express",
+      "django",
+    ],
+    Design: ["figma", "adobe", "ui", "ux", "photoshop", "canva", "design"],
+    DevOps: ["git", "github", "docker", "aws", "linux", "jenkins", "cloud"],
+    "Soft Skills": [
+      "communication",
+      "leadership",
+      "teamwork",
+      "problem-solving",
+      "management",
+    ],
+  };
+
+  const scores = {
+    Frontend: 0,
+    Backend: 0,
+    Design: 0,
+    DevOps: 0,
+    "Soft Skills": 0,
+  };
+  const skillsLower = userSkills.map((s) => s.toLowerCase());
+
+  skillsLower.forEach((skill) => {
+    for (const [category, keywords] of Object.entries(taxonomy)) {
+      if (keywords.some((k) => skill.includes(k))) {
+        scores[category] += 3;
       }
-      const data = await response.json();
-
-      // 1. Load Profile Quick View
-      dashName.textContent = data.user.name || "User";
-      dashTrack.textContent = data.user.track || "No track selected";
-      dashEmail.textContent = data.user.email || "No email";
-      dashSkills.innerHTML =
-        data.user.skills.length > 0
-          ? data.user.skills.map((skill) => `<li>${skill}</li>`).join("")
-          : "<li>No skills added yet.</li>";
-
-      // 2. Load Recommended Jobs (Req 5, Req 2, Req 3)
-      jobsList.innerHTML =
-        data.jobs.length > 0
-          ? data.jobs.map((job) => generateJobHTML(job, true)).join("") // Pass 'true' to show match score
-          : "<p>No job recommendations found. Try adding more skills to your profile!</p>";
-
-      // 3. Load Recommended Resources (Req 5)
-      resourcesList.innerHTML =
-        data.resources.length > 0
-          ? data.resources
-              .map((res) => generateResourceHTML(res, true))
-              .join("")
-          : "<p>No learning recommendations found. Add skills to get started!</p>";
-    } catch (err) {
-      console.error("Error loading dashboard:", err);
-      jobsList.innerHTML =
-        '<p class="error-message" style="display:block;">Error loading recommendations.</p>';
-      resourcesList.innerHTML =
-        '<p class="error-message" style="display:block;">Error loading recommendations.</p>';
     }
+  });
+
+  const totalPoints = Object.values(scores).reduce((a, b) => a + b, 0);
+  const emptyMsg = document.getElementById("chart-empty-msg");
+
+  if (totalPoints === 0) {
+    if (emptyMsg) emptyMsg.style.display = "block";
+    Object.keys(scores).forEach((k) => (scores[k] = 2));
+  } else {
+    if (emptyMsg) emptyMsg.style.display = "none";
   }
 
-  /**
-   * (Req 2) Load user's data into the Profile forms
-   */
-  async function loadProfileData() {
-    try {
-      const response = await fetchWithAuth("/profile");
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403)
-          showLoggedOutState();
-        throw new Error("Failed to get profile");
-      }
-      const data = await response.json();
+  const canvasRadar = document.getElementById("radarChart");
+  if (canvasRadar) {
+    if (window.myRadarChart) window.myRadarChart.destroy();
 
-      // Populate Details Form
-      document.getElementById("profile-name").value = data.full_name || "";
-      document.getElementById("profile-email").value = data.email || "";
-      document.getElementById("profile-education").value =
-        data.education_level || "";
-      document.getElementById("profile-level").value =
-        data.experience_level || "Fresher";
-      document.getElementById("profile-track").value =
-        data.career_track || "Web Development";
-      document.getElementById("profile-roles").value = data.target_roles || "";
+    const ctx = canvasRadar.getContext("2d");
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, "rgba(79, 70, 229, 0.7)");
+    gradient.addColorStop(1, "rgba(34, 211, 238, 0.1)");
 
-      // Populate Skills & CV Forms
-      document.getElementById("profile-skills").value = data.skills || "";
-      document.getElementById("profile-experience").value =
-        data.experience_notes || "";
-      document.getElementById("profile-cv").value = data.cv_text || "";
-    } catch (err) {
-      console.error("Error loading profile data:", err);
-    }
+    window.myRadarChart = new Chart(canvasRadar, {
+      type: "radar",
+      data: {
+        labels: Object.keys(scores),
+        datasets: [
+          {
+            label: "Skill DNA",
+            data: Object.values(scores),
+            backgroundColor: gradient,
+            borderColor: "#4F46E5",
+            borderWidth: 2,
+            pointBackgroundColor: "#22D3EE",
+            pointBorderColor: "#fff",
+            pointHoverBackgroundColor: "#fff",
+            pointHoverBorderColor: "#4F46E5",
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          r: {
+            angleLines: { color: "rgba(150, 150, 150, 0.1)" },
+            grid: { color: "rgba(150, 150, 150, 0.1)" },
+            pointLabels: {
+              color: "#64748B",
+              font: { size: 11, weight: "bold", family: "Inter" },
+            },
+            ticks: { display: false, maxTicksLimit: 5, beginAtZero: true },
+          },
+        },
+        plugins: { legend: { display: false } },
+      },
+    });
   }
+}
 
-  /**
-   * (Req 3) Load all jobs for the Jobs page
-   */
-  async function loadJobsPage(filters = {}) {
-    const jobsListContainer = document.getElementById("jobs-list-container");
-    jobsListContainer.innerHTML = "<p>Loading jobs...</p>";
+// --- ADMIN FUNCTIONS ---
+async function loadAdminJobs() {
+  const list = document.getElementById("admin-job-list");
+  if (!list) return;
+  list.innerHTML = "<p>Loading...</p>";
 
-    // Build query string from filters
-    const params = new URLSearchParams();
-    if (filters.title) params.append("title", filters.title);
-    if (filters.location) params.append("location", filters.location);
-    if (filters.type) params.append("type", filters.type);
-    const queryString = params.toString();
+  try {
+    const res = await fetch(API_URL + "/public-jobs");
+    const jobs = await res.json();
 
-    try {
-      // We use fetchWithAuth to get personalized match scores
-      const response = await fetchWithAuth(`/jobs?${queryString}`);
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403)
-          showLoggedOutState();
-        throw new Error("Failed to load jobs");
-      }
-      const jobs = await response.json();
-
-      // We pass 'true' to show the match score on this page too
-      jobsListContainer.innerHTML =
-        jobs.length > 0
-          ? jobs.map((job) => generateJobHTML(job, true)).join("")
-          : "<p>No jobs found matching your criteria.</p>";
-    } catch (err) {
-      console.error("Error loading jobs:", err);
-      jobsListContainer.innerHTML =
-        '<p class="error-message" style="display:block;">Error loading jobs. Are you logged in?</p>';
+    if (jobs.length === 0) {
+      list.innerHTML = "<p>No jobs found.</p>";
+      return;
     }
+
+    list.innerHTML = jobs
+      .map(
+        (job) => `
+          <div class="list-item" style="display:flex; justify-content:space-between; align-items:center;">
+              <div><strong>${job.job_title}</strong> <br> <small>${job.company}</small></div>
+              <button onclick="deleteJob(${job.id})" style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">Delete</button>
+          </div>
+      `
+      )
+      .join("");
+  } catch (err) {
+    console.error(err);
+    list.innerHTML = "<p>Error loading admin data.</p>";
   }
+}
 
-  /**
-   * (Req 4) Load all resources for the Resources page
-   */
-  async function loadResourcesPage() {
-    const resourcesListContainer = document.getElementById(
-      "resources-list-container"
-    );
-    resourcesListContainer.innerHTML = "<p>Loading resources...</p>";
-
-    try {
-      // No auth needed, this is a public route
-      const response = await fetch(API_URL + "/resources");
-      if (!response.ok) throw new Error("Failed to load resources");
-
-      const resources = await response.json();
-
-      resourcesListContainer.innerHTML =
-        resources.length > 0
-          ? resources.map((res) => generateResourceHTML(res, false)).join("") // Pass 'false'
-          : "<p>No resources found.</p>";
-    } catch (err) {
-      console.error("Error loading resources:", err);
-      resourcesListContainer.innerHTML =
-        '<p class="error-message" style="display:block;">Error loading resources.</p>';
-    }
+async function deleteJob(id) {
+  if (!confirm("Delete this job?")) return;
+  try {
+    await fetch(API_URL + "/admin/delete-job", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    loadAdminJobs();
+  } catch (err) {
+    alert("Error deleting job");
   }
+}
 
-  // --- 4. Event Listeners (Navigation) ---
-
-  // Logged-Out Nav
-  navLinks.logo.addEventListener("click", (e) => {
-    e.preventDefault();
-    // If logged in, go to dashboard, else go to login
-    if (localStorage.getItem("token")) {
-      showView("dashboard");
-    } else {
-      showView("login");
+/**
+ * Load Profile Data
+ */
+async function loadProfileData() {
+  try {
+    const response = await fetchWithAuth("/profile");
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403)
+        showLoggedOutState();
+      throw new Error("Failed to get profile");
     }
-  });
-  navLinks.publicJobs.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("jobs");
-    loadJobsPage(); // Need to call this, but it will fail if not logged in
-  });
-  navLinks.publicResources.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("resources");
-    loadResourcesPage();
-  });
-  navLinks.login.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("login");
-  });
-  navLinks.gotoSignup.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("signup");
-  });
-  navLinks.gotoLogin.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("login");
-  });
+    const data = await response.json();
 
-  // Logged-In Nav
-  navLinks.dashboard.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("dashboard");
-    loadDashboardData();
-  });
-  navLinks.privateJobs.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("jobs");
-    loadJobsPage();
-  });
-  navLinks.privateResources.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("resources");
-    loadResourcesPage();
-  });
-  navLinks.profile.addEventListener("click", (e) => {
-    e.preventDefault();
-    showView("profile");
-    loadProfileData();
-  });
-  navLinks.logout.addEventListener("click", (e) => {
-    e.preventDefault();
+    document.getElementById("profile-name").value = data.full_name || "";
+    document.getElementById("profile-email").value = data.email || "";
+    document.getElementById("profile-education").value =
+      data.education_level || "";
+    document.getElementById("profile-level").value =
+      data.experience_level || "Fresher";
+    document.getElementById("profile-track").value =
+      data.career_track || "Web Development";
+    document.getElementById("profile-roles").value = data.target_roles || "";
+    document.getElementById("profile-skills").value = data.skills || "";
+    document.getElementById("profile-experience").value =
+      data.experience_notes || "";
+    document.getElementById("profile-cv").value = data.cv_text || "";
+  } catch (err) {
+    console.error("Error loading profile:", err);
+  }
+}
+
+/**
+ * Load Jobs Page
+ */
+async function loadJobsPage(filters = {}) {
+  const jobsListContainer = document.getElementById("jobs-list-container");
+  jobsListContainer.innerHTML = "<p>Loading jobs...</p>";
+
+  const params = new URLSearchParams();
+  if (filters.title) params.append("title", filters.title);
+  if (filters.location) params.append("location", filters.location);
+  if (filters.type) params.append("type", filters.type);
+  const queryString = params.toString();
+
+  try {
+    const response = await fetchWithAuth(`/jobs?${queryString}`);
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403)
+        showLoggedOutState();
+      throw new Error("Failed to load jobs");
+    }
+    const jobs = await response.json();
+    jobsListContainer.innerHTML =
+      jobs.length > 0
+        ? jobs.map((job) => generateJobHTML(job, true)).join("")
+        : "<p>No jobs found matching your criteria.</p>";
+  } catch (err) {
+    console.error("Error loading jobs:", err);
+    jobsListContainer.innerHTML =
+      '<p class="error-message">Error loading jobs.</p>';
+  }
+}
+
+/**
+ * Load Resources Page
+ */
+async function loadResourcesPage() {
+  const resourcesListContainer = document.getElementById(
+    "resources-list-container"
+  );
+  resourcesListContainer.innerHTML = "<p>Loading resources...</p>";
+
+  try {
+    const response = await fetch(API_URL + "/resources");
+    if (!response.ok) throw new Error("Failed to load resources");
+    const resources = await response.json();
+    resourcesListContainer.innerHTML =
+      resources.length > 0
+        ? resources.map((res) => generateResourceHTML(res, false)).join("")
+        : "<p>No resources found.</p>";
+  } catch (err) {
+    console.error("Error loading resources:", err);
+    resourcesListContainer.innerHTML =
+      '<p class="error-message">Error loading resources.</p>';
+  }
+}
+
+// ==========================================
+// 5. EVENT LISTENERS (INITIALIZATION)
+// ==========================================
+
+document.addEventListener("DOMContentLoaded", () => {
+  // 1. Load Saved Theme
+  const savedTheme = localStorage.getItem("theme") || "light";
+  setTheme(savedTheme);
+
+  // 2. Check Auth Status (Auto Login)
+  const initialToken =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
+  if (initialToken) {
+    showLoggedInState();
+  } else {
     showLoggedOutState();
+    loadResourcesPage();
+  }
+
+  // --- EVENT LISTENERS ---
+
+  // Navigation Links
+  const navMap = {
+    "nav-dashboard": () => {
+      showView("dashboard");
+      loadDashboardData();
+    },
+    "nav-jobs-private": () => {
+      showView("jobs");
+      loadJobsPage();
+    },
+    "nav-jobs-public": () => {
+      showView("jobs");
+      loadJobsPage();
+    },
+    "nav-roadmap": () => showView("roadmap"),
+    "nav-chatbot": () => {
+      showView("chatbot");
+      setTimeout(
+        () => document.getElementById("careerbot-input")?.focus(),
+        100
+      );
+    },
+    "nav-resources-private": () => {
+      showView("resources");
+      loadResourcesPage();
+    },
+    "nav-resources-public": () => {
+      showView("resources");
+      loadResourcesPage();
+    },
+    "nav-profile": () => {
+      showView("profile");
+      loadProfileData();
+    },
+    "dash-profile-link": () => {
+      showView("profile");
+      loadProfileData();
+    },
+    "nav-login": () => showView("login"),
+    "nav-logout": (e) => {
+      e.preventDefault();
+      showLoggedOutState();
+    },
+    "logo-link": (e) => {
+      e.preventDefault();
+      if (localStorage.getItem("token") || sessionStorage.getItem("token")) {
+        showView("dashboard");
+        loadDashboardData();
+      } else {
+        showView("login");
+      }
+    },
+  };
+
+  Object.keys(navMap).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("click", navMap[id]);
   });
 
-  // --- 5. Event Listeners (Forms) ---
-
-  // (Req 1) Login Form
-  if (loginForm) {
-    loginForm.addEventListener("submit", async (e) => {
+  // Auth Links (Small text links)
+  const gotoSignup = document.getElementById("goto-signup-link");
+  if (gotoSignup)
+    gotoSignup.addEventListener("click", (e) => {
       e.preventDefault();
-      loginError.style.display = "none"; // Hide old errors
-
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-pass").value;
-
-      try {
-        const response = await fetch(API_URL + "/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Login failed");
-        }
-
-        // SUCCESS! Save token and show dashboard
-        localStorage.setItem("token", data.token);
-        showLoggedInState();
-      } catch (err) {
-        loginError.textContent = err.message;
-        loginError.style.display = "block";
-      }
+      showView("signup");
     });
-  }
 
-  // (Req 1) Signup Form
-  if (signupForm) {
-    signupForm.addEventListener("submit", async (e) => {
+  const gotoLogin = document.getElementById("goto-login-link");
+  if (gotoLogin)
+    gotoLogin.addEventListener("click", (e) => {
       e.preventDefault();
-      signupError.style.display = "none";
+      showView("login");
+    });
 
-      // Get all values
-      const formData = {
-        fullName: document.getElementById("signup-name").value,
-        email: document.getElementById("signup-email").value,
-        password: document.getElementById("signup-pass").value,
-        education: document.getElementById("signup-education").value,
-        experience: document.getElementById("signup-level").value,
-        track: document.getElementById("signup-track").value,
-      };
-
-      try {
-        const response = await fetch(API_URL + "/register", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
-        });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Signup failed");
-        }
-
-        // SUCCESS! Show login page
-        alert("Sign up successful! Please log in."); // Simple alert
-        showView("login");
-      } catch (err) {
-        signupError.textContent = err.message;
-        signupError.style.display = "block";
-      }
+  // Floating Button
+  const fabBtn = document.getElementById("fab-chatbot");
+  if (fabBtn) {
+    fabBtn.addEventListener("click", () => {
+      showView("chatbot");
+      const chatLink = document.getElementById("nav-chatbot");
+      if (chatLink) chatLink.classList.add("active");
+      setTimeout(
+        () => document.getElementById("careerbot-input")?.focus(),
+        100
+      );
     });
   }
 
-  // (Req 2) Profile Forms (combining all 3)
-  // We will save all 3 forms with one API call for simplicity
-  if (profileDetailsForm) {
-    profileDetailsForm.addEventListener("submit", handleProfileSave);
-  }
-  if (profileSkillsForm) {
-    profileSkillsForm.addEventListener("submit", handleProfileSave);
-  }
-  if (profileCvForm) {
-    profileCvForm.addEventListener("submit", handleProfileSave);
-  }
+  // Theme & Password
+  const themeBtn = document.getElementById("theme-toggle-btn");
+  const themeBtnPublic = document.getElementById("theme-toggle-btn-public");
+  const handleThemeToggle = () =>
+    setTheme(localStorage.getItem("theme") === "dark" ? "light" : "dark");
+  if (themeBtn) themeBtn.addEventListener("click", handleThemeToggle);
+  if (themeBtnPublic)
+    themeBtnPublic.addEventListener("click", handleThemeToggle);
 
-  async function handleProfileSave(e) {
-    e.preventDefault(); // Stop form from submitting
+  const toggleLogin = document.getElementById("toggle-login-pass");
+  if (toggleLogin)
+    toggleLogin.addEventListener("click", () =>
+      togglePasswordVisibility("login-pass", "toggle-login-pass")
+    );
+  const toggleSignup = document.getElementById("toggle-signup-pass");
+  if (toggleSignup)
+    toggleSignup.addEventListener("click", () =>
+      togglePasswordVisibility("signup-pass", "toggle-signup-pass")
+    );
 
-    // Collect all data from all forms
-    const profileData = {
-      // Details
-      fullName: document.getElementById("profile-name").value,
-      email: document.getElementById("profile-email").value,
-      education: document.getElementById("profile-education").value,
-      level: document.getElementById("profile-level").value,
-      track: document.getElementById("profile-track").value,
-      roles: document.getElementById("profile-roles").value,
-      // Skills/Exp
-      skills: document.getElementById("profile-skills").value,
-      experience: document.getElementById("profile-experience").value,
-      // CV
-      cv_text: document.getElementById("profile-cv").value,
-    };
-
-    try {
-      const response = await fetchWithAuth("/profile", {
-        method: "POST",
-        body: JSON.stringify(profileData), // All data sent at once
-      });
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message);
-
-      // Success!
-      showProfileSuccess("Profile updated successfully!");
-      // Reload dashboard data in background to update header
-      loadDashboardData();
-    } catch (err) {
-      console.error("Error saving profile:", err);
-      showProfileError(err.message || "Failed to save profile");
-    }
-  }
-
-  ////injected by me
-  // (Req 1.Part2) AI CV Analysis Button
-  if (analyzeCvBtn) {
-    analyzeCvBtn.addEventListener("click", async () => {
-      const cv_text = document.getElementById("profile-cv").value;
-      if (!cv_text.trim()) {
-        alert("Please paste your CV text into the box first.");
-        return;
-      }
-
-      // Show loading message
-      analyzeCvStatus.textContent = "Analyzing... this may take a moment.";
-      analyzeCvStatus.style.display = "block";
-      analyzeCvBtn.disabled = true;
-
-      try {
-        const response = await fetchWithAuth("/profile/analyze-cv", {
-          method: "POST",
-          body: JSON.stringify({ cv_text: cv_text }),
-        });
-
-        // Inside the 'try' block:
-        if (response.status === 403 || response.status === 401) {
-          // The security guard kicked us out, no need to read JSON
-          throw new Error("Access denied. Please log out and log back in.");
-        }
-
-        const data = await response.json(); // Now this should only run if the status is OK (200)
-
-        if (!response.ok) {
-          // Handle a 500 error that returned JSON
-          throw new Error(
-            data.message || "Analysis failed (Internal Server Error)."
-          );
-        }
-        // ...
-
-        // SUCCESS! Update the profile form fields
-        document.getElementById("profile-skills").value = data.skills;
-        document.getElementById("profile-roles").value = data.roles;
-
-        // Show success message
-        analyzeCvStatus.textContent =
-          "Analysis complete! Your skills and roles have been updated. Remember to save!";
-      } catch (err) {
-        console.error("CV Analysis error:", err);
-        analyzeCvStatus.textContent = `Error: ${err.message}`;
-      } finally {
-        // Re-enable button
-        analyzeCvBtn.disabled = false;
-      }
+  // Features
+  const downloadBtn = document.getElementById("download-cv-btn");
+  if (downloadBtn)
+    downloadBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      generatePDF();
     });
-  }
 
-  // (Req 3) Job Filter
-  if (jobFilterBtn) {
-    jobFilterBtn.addEventListener("click", () => {
-      ///changed by me
+  const filterBtn = document.getElementById("job-filter-btn");
+  if (filterBtn) {
+    filterBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       const filters = {
         title: document.getElementById("job-search-title").value,
         location: document.getElementById("job-search-location").value,
@@ -814,160 +882,259 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // (Req 4) AI Roadmap Generation Form
+  // AI CV Analysis
+  const analyzeBtn = document.getElementById("analyze-cv-btn");
+  if (analyzeBtn) {
+    analyzeBtn.addEventListener("click", async () => {
+      const cv_text = document.getElementById("profile-cv").value;
+      const statusEl = document.getElementById("analyze-cv-status");
+      if (!cv_text.trim()) return alert("Please paste your CV text.");
+      statusEl.textContent = "Analyzing...";
+      statusEl.style.display = "block";
+      analyzeBtn.disabled = true;
+      try {
+        const res = await fetchWithAuth("/profile/analyze-cv", {
+          method: "POST",
+          body: JSON.stringify({ cv_text }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        document.getElementById("profile-skills").value = data.skills;
+        document.getElementById("profile-roles").value = data.roles;
+        statusEl.textContent = "Analysis Complete! Remember to save.";
+      } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+      } finally {
+        analyzeBtn.disabled = false;
+      }
+    });
+  }
+
+  // AI Summary
+  const summaryBtn = document.getElementById("generate-summary-btn");
+  if (summaryBtn) {
+    summaryBtn.addEventListener("click", async () => {
+      const skills = document.getElementById("profile-skills").value;
+      const exp = document.getElementById("profile-experience").value;
+      const statusEl = document.getElementById("summary-status");
+      if (!skills && !exp) return alert("Add skills or experience first.");
+      statusEl.textContent = "Generating summary...";
+      statusEl.style.display = "block";
+      summaryBtn.disabled = true;
+      try {
+        const res = await fetchWithAuth("/profile/summarize", {
+          method: "POST",
+          body: JSON.stringify({ skills, experience: exp }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        document.getElementById("profile-experience").value = data.summary;
+        statusEl.textContent = "Done! Review and save.";
+      } catch (err) {
+        statusEl.textContent = "Error: " + err.message;
+      } finally {
+        summaryBtn.disabled = false;
+        setTimeout(() => (statusEl.style.display = "none"), 5000);
+      }
+    });
+  }
+
+  // AI Roadmap
+  const roadmapForm = document.getElementById("roadmap-form");
   if (roadmapForm) {
     roadmapForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-
-      const targetRole = document.getElementById("roadmap-target-role").value;
-      const timeframe = document.getElementById("roadmap-timeframe").value;
-
-      // Get current skills from the profile data (assuming loadDashboardData ran)
-      const currentSkills = document.getElementById("dash-skills").textContent;
-
+      const role = document.getElementById("roadmap-target-role").value;
+      const time = document.getElementById("roadmap-timeframe").value;
+      const skills = document.getElementById("dash-skills")?.innerText || "";
+      const status = document.getElementById("roadmap-status");
+      const output = document.getElementById("roadmap-output");
+      status.textContent = "Generating Plan...";
+      status.style.display = "block";
       try {
-        // 1. Show status
-        roadmapStatus.textContent = "Generating roadmap... please wait.";
-        roadmapStatus.style.display = "block";
-        roadmapOutput.innerHTML = "<p>Processing request with AI...</p>";
-
-        // 2. Send request to the backend
-        const response = await fetchWithAuth("/roadmap", {
+        const res = await fetchWithAuth("/roadmap", {
           method: "POST",
           body: JSON.stringify({
-            targetRole,
-            timeframe,
-            currentSkills,
+            targetRole: role,
+            timeframe: time,
+            currentSkills: skills,
           }),
         });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Roadmap generation failed.");
-        }
-
-        // 3. Display successful roadmap
-        // Replace the raw <pre> tag with the new HTML renderer:
-        roadmapOutput.innerHTML = renderRoadmap(data.roadmap);
-        roadmapStatus.textContent = "Roadmap generated successfully!";
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        output.innerHTML = renderRoadmap(data.roadmap);
+        status.textContent = "Success!";
       } catch (err) {
-        roadmapOutput.innerHTML = `<p class="error-message">Error: ${err.message}</p>`;
-        roadmapStatus.textContent = "Failed to generate roadmap.";
-      } finally {
-        // Re-enable button after 5 seconds
-        setTimeout(() => (roadmapStatus.style.display = "none"), 5000);
+        status.textContent = "Error: " + err.message;
       }
     });
   }
 
-  // (Req 5) CareerBot Assistant Logic
-  if (careerbotAskBtn) {
-    careerbotAskBtn.addEventListener("click", async () => {
-      const userQuery = careerbotInput.value.trim();
+  // Chatbot
+  const chatBtn = document.getElementById("careerbot-ask-btn");
+  if (chatBtn) {
+    chatBtn.addEventListener("click", async () => {
+      const input = document.getElementById("careerbot-input");
+      const window = document.getElementById("careerbot-chat-window");
+      const query = input.value.trim();
+      if (!query) return;
+      window.innerHTML += `<div class="chat-message user-message"><p><strong>You:</strong> ${query}</p></div>`;
+      input.value = "";
+      window.scrollTop = window.scrollHeight;
+      try {
+        const res = await fetchWithAuth("/chatbot", {
+          method: "POST",
+          body: JSON.stringify({ query }),
+        });
+        const data = await res.json();
+        window.innerHTML += `<div class="chat-message bot-message"><p><strong>AI:</strong> ${data.response}</p></div>`;
+      } catch (err) {
+        window.innerHTML += `<div class="chat-message error-message"><p>Error connecting.</p></div>`;
+      }
+      window.scrollTop = window.scrollHeight;
+    });
+  }
 
-      if (userQuery === "") return;
-
-      // 1. Display user message immediately
-      careerbotChatWindow.innerHTML += `<div class="chat-message user-message"><p><strong>You:</strong> ${userQuery}</p></div>`;
-      careerbotChatWindow.innerHTML += `<div class="chat-message bot-message" id="bot-typing"><span>Bot: </span><span class="typing-indicator">...</span></div>`;
-      careerbotInput.value = ""; // Clear the input field
-
-      // 2. Scroll to the bottom of the chat window
-      careerbotChatWindow.scrollTop = careerbotChatWindow.scrollHeight;
+  // Login Form
+  const loginForm = document.getElementById("login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-pass").value;
+      const rememberMe = document.getElementById("remember-me")?.checked;
+      const errorEl = document.getElementById("login-error");
 
       try {
-        // Send request to the backend
-        const response = await fetchWithAuth("/chatbot", {
+        const res = await fetch(API_URL + "/login", {
           method: "POST",
-          body: JSON.stringify({ query: userQuery }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
         });
-        const data = await response.json();
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
 
-        if (!response.ok) {
-          throw new Error(data.message || "Bot service failed.");
+        if (rememberMe) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.role);
+        } else {
+          sessionStorage.setItem("token", data.token);
+          sessionStorage.setItem("role", data.role);
         }
 
-        // 3. Update the last message with the bot's response
-        const typingIndicator = document.getElementById("bot-typing");
-        typingIndicator.remove(); // Remove the "typing..." indicator
-
-        careerbotChatWindow.innerHTML += `<div class="chat-message bot-message"><p><strong>Mentor:</strong> ${data.response}</p><p class="bot-disclaimer">${data.disclaimer}</p></div>`;
+        if (data.role === "admin") {
+          showView("admin");
+          loadAdminJobs();
+        } else {
+          showLoggedInState();
+        }
       } catch (err) {
-        const typingIndicator = document.getElementById("bot-typing");
-        if (typingIndicator) typingIndicator.remove();
-
-        careerbotChatWindow.innerHTML += `<div class="chat-message error-message"><p><strong>Mentor:</strong> Error: ${err.message}</p></div>`;
-      } finally {
-        careerbotChatWindow.scrollTop = careerbotChatWindow.scrollHeight;
+        errorEl.textContent = err.message;
+        errorEl.style.display = "block";
       }
     });
   }
 
-  // (Req 6) CV Summary Assistant Logic
-  if (generateSummaryBtn) {
-    generateSummaryBtn.addEventListener("click", async () => {
-      // We use the existing skills and experience text areas as input
-      const currentSkills = document.getElementById("profile-skills").value;
-      const currentExperience =
-        document.getElementById("profile-experience").value;
-
-      if (currentSkills.trim() === "" && currentExperience.trim() === "") {
-        alert(
-          "Please add some skills or experience notes first to generate a summary."
-        );
-        return;
-      }
-
+  // Signup Form
+  const signupForm = document.getElementById("signup-form");
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = {
+        fullName: document.getElementById("signup-name").value,
+        email: document.getElementById("signup-email").value,
+        password: document.getElementById("signup-pass").value,
+        education: document.getElementById("signup-education").value,
+        experience: document.getElementById("signup-level").value,
+        track: document.getElementById("signup-track").value,
+      };
       try {
-        // 1. Show status
-        summaryStatus.textContent = "Generating summary...";
-        summaryStatus.style.display = "block";
-        generateSummaryBtn.disabled = true;
-
-        // 2. Send request to the backend
-        const response = await fetchWithAuth("/profile/summarize", {
+        const res = await fetch(API_URL + "/register", {
           method: "POST",
-          body: JSON.stringify({
-            skills: currentSkills,
-            experience: currentExperience,
-          }),
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
         });
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.message || "Summary generation failed.");
-        }
-
-        // 3. SUCCESS! Insert the generated text into the profile experience box
-        // This allows the user to edit it before saving
-        document.getElementById("profile-experience").value = data.summary;
-        summaryStatus.textContent =
-          "Summary generated successfully! Remember to save.";
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message);
+        alert("Signup successful! Please log in.");
+        showView("login");
       } catch (err) {
-        summaryStatus.textContent = `Error: ${err.message}`;
-        console.error("Summary Assistant Error:", err);
-      } finally {
-        generateSummaryBtn.disabled = false;
-        setTimeout(() => (summaryStatus.style.display = "none"), 5000);
+        document.getElementById("signup-error").textContent = err.message;
+        document.getElementById("signup-error").style.display = "block";
       }
     });
   }
 
-  // --- 6. Initial App Load ---
+  // Profile Save
+  const profileForms = [
+    "profile-details-form",
+    "profile-skills-form",
+    "profile-cv-form",
+  ];
+  profileForms.forEach((formId) => {
+    const form = document.getElementById(formId);
+    if (form) {
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const getValue = (id) => document.getElementById(id)?.value || "";
+        const profileData = {
+          fullName: getValue("profile-name"),
+          email: getValue("profile-email"),
+          education: getValue("profile-education"),
+          level: getValue("profile-level"),
+          track: getValue("profile-track"),
+          roles: getValue("profile-roles"),
+          skills: getValue("profile-skills"),
+          experience: getValue("profile-experience"),
+          cv_text: getValue("profile-cv"),
+        };
 
-  // Check if we are already logged in
-  const initialToken = localStorage.getItem("token");
-  if (initialToken) {
-    // We are logged in. Show the dashboard.
-    // We could (and should) verify the token with the server,
-    // but for a hackathon, this is a fast and simple check.
-    showLoggedInState();
-  } else {
-    // We are logged out. Show the login page.
-    showLoggedOutState();
+        if (!profileData.fullName.trim()) {
+          return alert(
+            "Name cannot be empty. Please wait for profile to load."
+          );
+        }
 
-    // Since we are logged out, load the public resources
-    // on the resources page by default.
-    loadResourcesPage();
+        try {
+          const res = await fetchWithAuth("/profile", {
+            method: "POST",
+            body: JSON.stringify(profileData),
+          });
+          const result = await res.json();
+          if (!res.ok) throw new Error(result.message);
+
+          showProfileSuccess("Saved successfully!");
+          await loadDashboardData();
+
+          if (formId === "profile-cv-form") form.reset();
+        } catch (err) {
+          showProfileError(err.message);
+        }
+      });
+    }
+  });
+
+  // Admin Form Listeners
+  const adminForm = document.getElementById("admin-add-job");
+  if (adminForm) {
+    adminForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const jobData = {
+        title: document.getElementById("adj-title").value,
+        company: document.getElementById("adj-company").value,
+        location: document.getElementById("adj-location").value,
+        type: document.getElementById("adj-type").value,
+        skills: document.getElementById("adj-skills").value,
+        exp: document.getElementById("adj-exp").value,
+      };
+      await fetch(API_URL + "/admin/add-job", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jobData),
+      });
+      alert("Job Posted!");
+      adminForm.reset();
+      loadAdminJobs();
+    });
   }
 });

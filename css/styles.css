@@ -1,0 +1,9 @@
+/* ============================================================
+   CAREER PLATFORM - MASTER STYLESHEET
+   ============================================================ */
+
+@import "./css/variables.css";
+@import "./css/base.css";
+@import "./css/components.css";
+@import "./css/dashboard.css";
+@import "./css/auth.css";
