@@ -1,23 +1,216 @@
-/* --- CSS Variables (Your Theme) --- */
+/* /* ============================================================
+   CAREER PLATFORM - MAIN STYLESHEET
+   ============================================================
+   1. Variables & Theme Configuration
+   2. Reset & Typography
+   3. Layout & Structure (Grid, Containers)
+   4. Components (Buttons, Forms, Cards)
+   5. Navigation Bar
+   6. Dashboard Specifics (Charts, Skills, Stats)
+   7. Feature Specifics (Roadmap, Chatbot)
+   8. Utilities & Animations
+   9. Responsive Design (Mobile)
+   ============================================================ */
+
+/* ==========================================
+   1. VARIABLES & THEME CONFIGURATION
+   ========================================== */
+/* ==================================
+   1. LIGHT THEME (Purple Gradient Aesthetic)
+================================== */
 :root {
-  --primary-color: #0052cc;
-  --primary-light: #f4f7ff;
-  --secondary-color: #34d399; /* For matching */
-  --secondary-light: #e0fbf1; /* For matching bg */
-  --secondary-dark: #067647; /* For matching text */
-  --error-color: #d93025; /* For error messages */
-  --error-light: #fbe9e7;
-  --success-color: #1a73e8;
-  --success-light: #e8f0fe;
-  --dark-color: #333;
-  --light-color: #fff;
-  --grey-color: #f0f2f5;
-  --border-color: #e0e0e0;
-  --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  --border-radius: 8px;
+  /* --- Primary Brand Colors (Violet/Purple) --- */
+  --primary-color: #8b5cf6; /* Vivid Violet */
+  --primary-light: #f3e8ff; /* Soft Lavender Background */
+  --primary-dark: #7c3aed; /* Deep Violet for text */
+
+  /* --- Secondary Accents (Pink/Fuchsia) --- */
+  --secondary-color: #d946ef; /* Fuchsia */
+  --secondary-light: #fae8ff;
+  --accent-color: #f59e0b; /* Gold for highlights */
+
+  /* --- Surface Colors --- */
+  /* Semi-transparent white for Glass effect */
+  --bg-color: #f3f4f6;
+  --light-color: rgba(255, 255, 255, 0.8); /* Glassy Cards */
+
+  /* --- Typography --- */
+  --dark-color: #1e1b4b; /* Dark Navy-Purple (Instead of Black) */
+  --text-muted: #64748b;
+
+  /* --- Borders & Shadows --- */
+  --border-color: rgba(255, 255, 255, 0.6);
+  --border-radius: 16px;
+
+  /* --- Purple Tinted Shadow --- */
+  --shadow: 0 4px 15px -3px rgba(139, 92, 246, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(139, 92, 246, 0.25);
+  --login-bg: #e0e7ff; /* Very light blue-purple for login background */
+  --login-card-bg: rgba(255, 255, 255, 0.75);
+  --login-border: rgba(255, 255, 255, 0.9);
+  --login-shadow: 0 10px 40px rgba(79, 70, 229, 0.1);
+  --login-glow: rgba(99, 102, 241, 0.3);
+} /* ==================================
+   2. BODY BACKGROUND (Animated Mesh)
+================================== */
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--dark-color);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  /* --- ✨ The Moving Purple Gradient ✨ --- */
+  /* Lavender -> Soft Blue -> Light Pink -> White */
+  background: linear-gradient(
+    -45deg,
+    #f3e8ff,
+    /* Violet Tint */ #e0e7ff,
+    /* Indigo Tint */ #fce7f3,
+    /* Pink Tint */ #ffffff
+  );
+  background-size: 400% 400%;
+  animation: pastelDream 12s ease infinite;
+
+  transition: background 0.5s ease, color 0.3s ease;
 }
 
-/* --- Global Reset & Typography --- */
+/* The smooth flow animation */
+@keyframes pastelDream {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+} /* ==================================
+   3. SMOOTH GLASS CARDS (Heavy Blur Logic)
+================================== */
+.card {
+  /*InitialState:;
+  Slightlytransparent*/
+  background-color: rgba(255, 255, 255, 0.6);
+  /*StandardBlur*/
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  /*MinimalShadow*/
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  /*✨SMOOTHTRANSITION(NoJumpyMovement)✨*/ /*'cubic-bezier'actslikeaheavyobjectmovingsmoothly*/
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* --- ✨ THE "FULL BLUR" HOVER ✨ --- */
+.card:hover {
+  /*1.VerySubtleLift(NotIrritating)*/
+  transform: translateY(-2px);
+  /*2.MAXBLUREFFECT*/ /*Thismakesthebackgroundbehindthecardturnintoasmoothwashofcolor*/
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  /*3.Makeitslightlymoresolid/white*/
+  background-color: rgba(255, 255, 255, 0.85);
+  /*4.GlowyPurpleShadow*/
+  box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.2);
+  border-color: #ffffff;
+  -webkit-transform: translateY(-2px);
+  -moz-transform: translateY(-2px);
+  -ms-transform: translateY(-2px);
+  -o-transform: translateY(-2px);
+}
+
+/* --- THEME: MIDNIGHT PRO (Dark Mode) --- */
+
+body.dark-mode {
+  /* --- The Palette (Zinc/Slate Scale) --- */
+  --grey-color: #09090b; /* Almost Black Background */
+  --light-color: #18181b; /* Dark Grey Cards */
+  --dark-color: #f4f4f5; /* Crisp White Text */
+
+  /* --- Accents --- */
+  --primary-color: #3b82f6; /* Vivid Blue */
+  --primary-light: rgba(59, 130, 246, 0.15); /* Subtle Blue Tint */
+  --primary-dark: #60a5fa;
+
+  /* --- Borders are Crucial here --- */
+  --border-color: #27272a; /* Distinct Grey Border */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+
+  /* --- Background Setup --- */
+  background-color: #09090b;
+  background-image: none; /* No messy gradients */
+  animation: none; /* No distracting movement */
+  position: relative;
+  --login-bg: #0c0f1d; /* Very dark blue for login background */
+  --login-card-bg: rgba(20, 27, 48, 0.8);
+  --login-border: rgba(255, 255, 255, 0.08);
+  --login-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --login-glow: rgba(99, 102, 241, 0.2);
+}
+
+/* --- 1. The "Top Glow" (Static) --- */
+/* Adds a subtle blue fade at the very top. Looks professional. */
+body.dark-mode::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 400px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.08), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* --- 2. Clean Cards with Borders --- */
+body.dark-mode .card,
+body.dark-mode .navbar {
+  background-color: var(--light-color);
+  border: 1px solid var(--border-color); /* Sharp definition */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05); /* Inner highlight */
+}
+
+/* Hover State */
+body.dark-mode .card:hover {
+  border-color: #3f3f46; /* Slightly lighter border on hover */
+}
+
+/* --- 3. Fix Inputs --- */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #09090b; /* Matches body background */
+  border: 1px solid var(--border-color);
+  color: #fff;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Pro focus ring */
+}
+
+/* --- 4. Fix Links & Icons --- */
+body.dark-mode a {
+  color: #60a5fa;
+}
+body.dark-mode .stat-icon,
+body.dark-mode .stat-emoji {
+  background-color: #27272a; /* Darker circle backgrounds */
+  border: 1px solid #3f3f46;
+}
+*/
+
+/* ==========================================
+   2. RESET & TYPOGRAPHY
+   ========================================== */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -25,7 +218,7 @@
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
   background-color: var(--grey-color);
   color: var(--dark-color);
@@ -33,6 +226,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1,
@@ -46,7 +240,6 @@ h3 {
 h1 {
   font-size: 2rem;
 }
-
 h2 {
   font-size: 1.5rem;
 }
@@ -55,6 +248,10 @@ a {
   text-decoration: none;
   color: var(--primary-color);
   cursor: pointer;
+  transition: color 0.2s;
+}
+a:hover {
+  color: var(--primary-dark);
 }
 
 img {
@@ -63,86 +260,72 @@ img {
   display: block;
 }
 
-/* --- Main Layout --- */
-.container {
+/* Smooth Transition for Components */
+.card,
+.navbar,
+input,
+textarea,
+select {
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    color 0.3s ease;
+}
+
+/* ==========================================
+   3. LAYOUT & STRUCTURE
+   ========================================== */
+
+.main-container {
   width: 90%;
   max-width: 1200px;
   margin: 2rem auto;
   flex-grow: 1;
 }
 
-/* This is the class our JS will use to show the current page */
-.main-content.active-view {
+/* View Management (SPA Router) */
+.view {
+  display: none;
+}
+.view.active-view {
+  display: block;
+}
+
+/* Dashboard Grid Layout (2 Column) */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr; /* Fixed Left, Fluid Right */
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.dashboard-right-column {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-/* All other pages are hidden */
-.main-content {
-  display: none;
+/* Profile Page Grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
 }
 
-/* --- Header / Navbar --- */
-.navbar {
-  background-color: var(--light-color);
-  box-shadow: var(--shadow);
-  padding: 1rem 5%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+/* Page Headers */
+.page-header {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1rem;
+}
+.page-header p {
+  font-size: 1rem;
+  color: #555;
 }
 
-.nav-logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-color);
-}
+/* ==========================================
+   4. COMPONENTS (BUTTONS, FORMS, CARDS)
+   ========================================== */
 
-.nav-links {
-  list-style: none;
-  display: flex;
-  gap: 1rem;
-}
-
-/* Hide logged-in nav by default */
-.nav-links#nav-logged-in {
-  display: none;
-}
-
-.nav-links a {
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--border-radius);
-  font-weight: 500;
-  color: var(--dark-color);
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.nav-links a.active,
-.nav-links a:hover {
-  background-color: var(--primary-light);
-  color: var(--primary-color);
-}
-
-.nav-links .action-btn {
-  background-color: var(--primary-color);
-  color: var(--light-color);
-  padding: 0.5rem 1rem;
-}
-
-.nav-links .action-btn:hover {
-  background-color: #0041a3;
-  color: var(--light-color);
-}
-.nav-links .action-btn.active {
-  background-color: #0041a3;
-  color: var(--light-color);
-}
-
-/* --- Reusable Card --- */
+/* Cards */
 .card {
   background-color: var(--light-color);
   border-radius: var(--border-radius);
@@ -150,13 +333,13 @@ img {
   border: 1px solid var(--border-color);
   padding: 1.5rem;
   overflow: hidden;
+  margin-bottom: 1.5rem;
 }
 
-/* --- Form Styles (for Login/Signup/Profile) --- */
+/* Forms */
 .form-group {
   margin-bottom: 1rem;
 }
-
 .form-group label {
   display: block;
   margin-bottom: 0.25rem;
@@ -174,9 +357,18 @@ img {
   border: 1px solid var(--border-color);
   font-size: 1rem;
   font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
-/* Read-only inputs look disabled */
-.form-group input[readonly] {
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.form-group input[disabled] {
   background-color: var(--grey-color);
   cursor: not-allowed;
 }
@@ -185,31 +377,51 @@ img {
   min-height: 100px;
 }
 
-.btn {
-  background-color: var(--primary-color);
-  color: var(--light-color);
+/* Checkbox Fix */
+input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px;
+  accent-color: var(--primary-color);
+}
+
+/* Buttons */
+.button-primary,
+.button-secondary {
+  display: inline-block;
+  text-align: center;
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: var(--border-radius);
   font-size: 1rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.2s ease-out;
   margin-top: 1rem;
-  width: 100%; /* Make buttons full-width */
+  width: 100%;
 }
 
-.btn:hover {
-  background-color: #0041a3;
+.button-primary {
+  background: var(--primary-color);
+  color: var(--light-color);
+  box-shadow: var(--shadow);
+}
+.button-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 
-/* Special button for filter bar */
-.filter-bar .btn {
-  width: auto;
-  flex-grow: 1;
+.button-secondary {
+  background: var(--primary-light);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-light);
+}
+.button-secondary:hover {
+  background: var(--light-color);
+  border: 1px solid var(--primary-color);
 }
 
-/* --- Error/Success Messages --- */
+/* Notifications */
 .error-message {
   background-color: var(--error-light);
   color: var(--error-color);
@@ -217,49 +429,254 @@ img {
   border-radius: var(--border-radius);
   margin-bottom: 1rem;
   border: 1px solid var(--error-color);
-  display: none; /* Hidden by default */
+  display: none;
 }
-/* Success messages (for profile page) */
-#profile-success {
+.success-message {
   background-color: var(--success-light);
   color: var(--success-color);
   border: 1px solid var(--success-color);
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
   display: none;
 }
 
-/* --- Login/Signup View --- */
-.auth-container {
-  max-width: 500px;
-  margin: 2rem auto;
+/* ==========================================
+   5. NAVIGATION BAR
+   ========================================== */
+
+.navbar {
+  background-color: var(--light-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 1rem 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
 
-.auth-container .card h2 {
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.nav-logo {
+  font-family: "Inter", sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: -1px;
+  white-space: nowrap;
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: var(--primary-color);
+  transition: transform 0.2s ease;
+}
+.nav-logo:hover {
+  transform: scale(1.05);
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.nav-links#nav-logged-in {
+  display: none;
+}
+
+.nav-links a {
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius);
+  font-weight: 500;
+  color: var(--dark-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+.nav-links a.active,
+.nav-links a:hover {
+  background-color: var(--primary-light);
+  color: var(--primary-color);
+  border-bottom: 2px solid black;
+}
+
+/* Action Buttons in Nav */
+.nav-links .nav-button,
+.nav-links .nav-button-logout {
+  background: var(--primary-color);
+  color: var(--light-color);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+.nav-links .nav-button:hover,
+.nav-links .nav-button-logout:hover {
+  background: var(--primary-dark);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* Nav Icons (Theme Toggle) */
+.nav-icon-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--dark-color);
+  padding: 0.4rem 0.6rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-left: 0.5rem;
+  transition: all 0.2s;
+}
+.nav-icon-btn:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-color);
+  transform: scale(1.05);
+}
+
+/* ==========================================
+   6. DASHBOARD SPECIFICS
+   ========================================== */
+
+/* Profile Card */
+.card-profile h3 {
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.75rem;
-  text-align: center;
+  font-size: 1.25rem;
 }
-
-.auth-toggle-link {
-  text-align: center;
-  margin-top: 1.5rem;
+.card-profile p {
   font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+}
+.card-profile p strong {
+  color: var(--dark-color);
+}
+.card-profile hr {
+  border: 0;
+  border-top: 1px solid var(--border-color);
+  margin: 1rem 0;
+}
+#dash-profile-link {
+  width: 100%;
+  text-align: center;
+  margin-top: 1rem;
 }
 
-/* --- Job & Resource List --- */
-.recommendation-list .list-item {
+/* Skill Tags (The "Cool" Pills) */
+#dash-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+#dash-skills li {
+  background: var(--light-color);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+
+#dash-skills li:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+  background: var(--primary-color);
+  color: #ffffff;
+}
+
+#dash-skills li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: 0.5s;
+}
+#dash-skills li:hover::after {
+  left: 100%;
+}
+
+/* Dark Mode Skill Overrides */
+body.dark-mode #dash-skills li {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary-color);
+  color: var(--primary-dark);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+body.dark-mode #dash-skills li:hover {
+  background: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 0 15px var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+/* Analytics & Radar Chart */
+.card-analytics {
+  background: var(--light-color);
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  border-radius: var(--border-radius);
+}
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.5rem;
+}
+.badge-pro {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+/* List Items (Jobs/Resources) */
+.item-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.list-item {
+  background: var(--light-color);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
   padding: 1rem;
-  margin-bottom: 1rem;
   transition: box-shadow 0.3s;
 }
-
-.list-item:last-child {
-  margin-bottom: 0;
-}
-
 .list-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-lg);
 }
 
 .item-header {
@@ -270,23 +687,16 @@ img {
   flex-wrap: wrap;
   gap: 0.5rem;
 }
-
 .item-header h3 {
   margin-bottom: 0;
   font-size: 1.1rem;
 }
-
 .item-header span {
   font-size: 0.9rem;
   font-weight: 500;
   color: #444;
   white-space: nowrap;
 }
-/* Resource link styling */
-.list-item a {
-  font-weight: 600;
-}
-
 .item-company {
   font-style: italic;
   color: #555;
@@ -299,166 +709,731 @@ img {
   gap: 0.5rem;
   align-items: center;
 }
-
 .item-tags .skill-tag {
   background-color: var(--primary-light);
   color: var(--primary-color);
   font-size: 0.8rem;
   font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 99px;
 }
 
-/* --- Job Page (Filter) --- */
-.filter-bar {
+/* Match Score & Skill Gap */
+.match-score {
+  border-top: 1px solid var(--border-color);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+.match-score-header {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
   align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
 }
-
-.filter-bar select,
-.filter-bar input[type="text"] {
-  padding: 0.75rem;
-  border-radius: var(--border-radius);
-  border: 1px solid var(--border-color);
+.match-score-header strong {
   font-size: 1rem;
-  flex-grow: 1;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.filter-bar input[type="text"] {
-  flex-basis: 300px;
+.match-score-bar {
+  width: 100%;
+  height: 10px;
+  border-radius: 5px;
+  background-color: var(--grey-color);
+  overflow: hidden;
+}
+.match-score-bar::before {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--match-percent, 0%);
+  background-color: var(--error-color);
+  transition: width 0.5s ease-out;
+}
+.match-score-bar.low::before {
+  background-color: var(--error-color);
+}
+.match-score-bar.medium::before {
+  background-color: #f59e0b;
+}
+.match-score-bar.high::before {
+  background-color: var(--secondary-color);
 }
 
-/* --- Dashboard View (Req 6) --- */
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1.5rem;
+.match-details {
+  font-size: 0.9rem;
+}
+.match-skills {
+  color: var(--secondary-dark);
+  font-weight: 500;
+}
+.missing-skills {
+  color: var(--error-color);
+  font-weight: 500;
 }
 
-.profile-quickview h2 {
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
+.skill-gap-recommendations {
+  background: var(--grey-color);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
 }
-
-.profile-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.profile-info img {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid var(--primary-light);
-}
-
-.profile-details h3 {
+.skill-gap-recommendations strong {
+  color: var(--dark-color);
+  font-weight: 600;
+  display: block;
   margin-bottom: 0.25rem;
 }
+.skill-gap-recommendations ul {
+  list-style-position: inside;
+  padding-left: 0;
+}
+.skill-gap-recommendations li {
+  margin-top: 0.25rem;
+}
 
-.profile-details p {
+.apply-link {
+  display: inline-block;
   font-size: 0.9rem;
-  color: #555;
-}
-
-.profile-skills h3 {
+  font-weight: 600;
   margin-top: 1rem;
-  font-size: 1.1rem;
+  background: var(--secondary-light);
+  color: var(--secondary-dark);
+  padding: 0.5rem 1rem;
+  border-radius: var(--border-radius);
+  transition: all 0.2s;
+}
+.apply-link:hover {
+  background: var(--secondary-color);
+  color: var(--light-color);
+  transform: translateY(-1px);
 }
 
-.skills-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+/* ==========================================
+   7. FEATURE SPECIFICS (ROADMAP, CHATBOT, AUTH)
+   ========================================== */
+
+/* Authentication Pages */
+.auth-container {
+  max-width: 500px;
+  margin: 2rem auto;
+}
+.auth-container .card h2 {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 0.75rem;
+  text-align: center;
+}
+.auth-switch {
+  text-align: center;
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+/* Password Toggle */
+.password-container {
+  position: relative;
+}
+.password-toggle-btn {
+  position: absolute;
+  top: 38px;
+  right: 15px;
+  cursor: pointer;
+  font-size: 1.2rem;
+  opacity: 0.6;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+.password-toggle-btn:hover {
+  opacity: 1;
+}
+.password-container input {
+  padding-right: 40px;
+}
+
+/* Roadmap */
+#roadmap-output {
+  min-height: 200px;
+  padding: 1.5rem;
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-primary-light);
+  box-shadow: var(--shadow-lg);
+}
+.roadmap-header {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-primary-dark);
+  border-bottom: 2px solid var(--color-primary-light);
+  padding-bottom: 0.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+.roadmap-subheader {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-secondary);
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+.roadmap-divider {
+  border: none;
+  border-top: 1px dashed var(--color-border);
+  margin: 1.5rem 0;
+}
+.roadmap-paragraph {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 0.75rem;
+}
+.roadmap-list {
   list-style: none;
+  padding-left: 0;
+  margin-bottom: 1rem;
+}
+.roadmap-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--color-text-primary);
+}
+.roadmap-list li::before {
+  content: "•";
+  color: var(--color-primary);
+  font-weight: 900;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+/* Chatbot */
+#careerbot-chat-window {
+  background-color: var(--color-bg-light);
+  height: 300px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1rem;
+}
+.chat-message {
+  padding: 0.6rem 1rem;
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  max-width: 90%;
+}
+.user-message {
+  background-color: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  align-self: flex-end;
+  margin-left: auto;
+  border-top-right-radius: 0;
+}
+.bot-message {
+  background-color: var(--color-bg-white);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  align-self: flex-start;
+  margin-right: auto;
+  border-top-left-radius: 0;
+}
+.bot-message strong {
+  font-weight: 600;
+}
+.bot-disclaimer {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  margin-top: 0.5rem;
+  border-top: 1px dashed var(--color-border);
+  padding-top: 0.25rem;
+}
+.typing-indicator {
+  color: var(--color-text-light);
+  animation: blink 1s infinite;
+  display: inline-block;
+  padding-left: 0.5rem;
+}
+@keyframes blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Filter Card */
+.filter-card {
+  margin-bottom: 1.5rem;
+}
+.filter-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1rem;
+  align-items: flex-end;
+}
+.filter-form .form-group {
+  margin-bottom: 0;
+}
+.filter-form .button-primary {
+  width: auto;
+  margin-top: 0;
+}
+
+/* Profile CV Analysis */
+.analyze-cv-container {
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  padding-top: 1rem;
+}
+#analyze-cv-status {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--primary-color);
   margin-top: 0.5rem;
 }
 
-.skills-list li {
-  background-color: var(--primary-light);
-  color: var(--primary-color);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.25rem 0.75rem;
-  border-radius: 15px;
-}
+/* ==========================================
+   8. RESPONSIVE DESIGN (MOBILE)
+   ========================================== */
 
-/* --- Matching Logic UI (Req 5) --- */
-.item-matches {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  margin-top: 0.75rem;
-}
-
-.item-matches p {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--secondary-dark);
-  margin: 0;
-}
-
-.item-matches .skill-tag-match {
-  background-color: var(--secondary-light);
-  color: var(--secondary-dark);
-  font-size: 0.85rem;
-  font-weight: 500;
-  padding: 0.25rem 0.5rem;
-  border-radius: 5px;
-}
-
-/* --- Profile Page (Req 2) --- */
-.profile-page-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 1.5rem;
-}
-
-.profile-page .card h3 {
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 0.75rem;
-}
-
-/* --- Responsive Design --- */
 @media (max-width: 992px) {
-  /* Stack dashboard and profile grids on tablets */
   .dashboard-grid,
-  .profile-page-grid {
+  .profile-grid {
     grid-template-columns: 1fr;
+  }
+  .card-profile,
+  .card-roadmap,
+  #dash-jobs,
+  #dash-resources,
+  .card-careerbot {
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .filter-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-form .button-primary {
+    grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 768px) {
-  /* Hide nav links on mobile (a real app would use a hamburger menu) */
   .nav-links {
     display: none;
-  }
-  .nav-links#nav-logged-in {
-    display: none;
-  }
-
-  .container {
+  } /* Standard hide, ideally needs hamburger menu implementation */
+  .main-container {
     width: 95%;
     margin: 1rem auto;
   }
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
+  .filter-form {
+    grid-template-columns: 1fr;
   }
-
   .auth-container {
     width: 100%;
     margin: 1rem auto;
   }
-
   .item-header {
     flex-direction: column;
     align-items: flex-start;
   }
+  .navbar {
+    padding: 0.8rem 1rem;
+  }
+  .nav-logo {
+    font-size: 1.5rem;
+  }
+  .nav-links {
+    gap: 0.8rem;
+  }
+}
+/* FOR ROBOT THE CSS CODE */
+/* ==================================
+   FLOATING ACTION BUTTON (FAB)
+================================== */
+
+#fab-chatbot {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  border: none;
+
+  /* Eye-Catching Gradient */
+  background: linear-gradient(135deg, #6366f1, #ec4899);
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+
+  /* 3D Shadow */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+
+  /* Always on top */
+  z-index: 2000;
+
+  /* Smooth Hover */
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* The Pulse Animation */
+  animation: pulse-glow 2s infinite;
+}
+
+#fab-chatbot:hover {
+  transform: scale(1.15) rotate(10deg); /* Grows and tilts on hover */
+  animation: none; /* Stop pulsing when hovered */
+}
+
+/* Pulse Animation Keyframes */
+@keyframes pulse-glow {
+  0% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 20px rgba(99, 102, 241, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+  }
+}
+
+/* Hide on Login/Signup pages if you prefer (Optional) */
+.view#login-view ~ #fab-chatbot,
+.view#signup-view ~ #fab-chatbot {
+  display: none;
+}
+
+/* ==================================
+   DASHBOARD SPLIT ROW (Fixed)
+================================== */
+
+.split-section {
+  display: grid;
+  /* This splits the space into exactly two equal halves */
+  grid-template-columns: 1fr 1fr;
+
+  /* Forces the container to touch the edges of the column */
+  width: 100%;
+
+  /* Adds space between the two cards */
+  gap: 1.5rem;
+}
+
+/* This ensures both cards are the same height, even if one has more text */
+.split-section .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* OPTIONAL: If you want the *entire* page to be wider on big screens */
+/* Find .main-container near the top of CSS and change max-width */
+.main-container {
+  /* increased from 1200px to 1400px for a "Fuller" screen look */
+  max-width: 1400px;
+}
+
+/* Responsive: On tablets/phones, stack them so they don't get too thin */
+@media (max-width: 1100px) {
+  .split-section {
+    grid-template-columns: 1fr; /* Stack them vertically */
+  }
+}
+/* ==================================
+   MATCH SCORE BAR STYLING
+================================== */
+
+/* The Container holding the text and bar */
+.match-score-wrapper {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Text Header (e.g., "Match Score: 85%") */
+.match-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--text-main);
+}
+
+/* The Background Track (Gray part) */
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background-color: #e2e8f0; /* Light Grey */
+  border-radius: 10px;
+  overflow: hidden; /* Keeps the inner bar rounded */
+}
+
+/* The Colored Bar (Actual Score) */
+.progress-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth Animation */
+}
+
+/* Dynamic Colors based on Score */
+.progress-fill.high {
+  background: linear-gradient(90deg, #10b981, #34d399); /* Emerald Green */
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+}
+
+.progress-fill.medium {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24); /* Amber/Gold */
+}
+
+.progress-fill.low {
+  background: linear-gradient(90deg, #ef4444, #f87171); /* Red */
+}
+
+/* Missing Skills Text */
+.missing-skills-text {
+  font-size: 0.8rem;
+  color: var(--error-color);
+  margin-top: 6px;
+  font-weight: 500;
+}
+
+/* --- Dark Mode Adjustment --- */
+body.dark-mode .progress-track {
+  background-color: rgba(255, 255, 255, 0.1); /* Darker track for dark mode */
+}
+/* ==================================
+   LOGIN / REGISTER INTERFACE AESTHETICS
+   (Neon Glassmorphism)
+================================== */
+
+/* --- OVERLAY THE ENTIRE LOGIN PAGE --- */
+.login-view,
+.register-view {
+  position: fixed; /* Takes over the entire screen */
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--login-bg); /* Use the new login-specific background */
+  overflow: hidden; /* Hide anything outside the screen */
+  z-index: 2000;
+  animation: fadeIn 0.5s ease-out; /* Smooth entrance */
+}
+
+/* --- THE MAIN LOGIN/REGISTER CARD --- */
+.login-card,
+.register-card {
+  background: var(--login-card-bg); /* Semi-transparent */
+  backdrop-filter: blur(20px); /* Heavy Glass Effect */
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--login-border);
+  border-radius: 24px; /* Softly rounded */
+  padding: 2.5rem;
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+  box-shadow: var(--login-shadow);
+  position: relative;
+  z-index: 10; /* Ensure it's above background elements */
+  animation: floatUp 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.login-card h2,
+.register-card h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: var(--primary-color); /* Highlight with primary color */
+}
+
+.login-card p,
+.register-card p {
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+/* --- ANIMATED BACKGROUND ELEMENTS (if you added them in HTML) --- */
+.aesthetic-bg-element {
+  position: absolute;
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  border-radius: 50%;
+  opacity: 0.2;
+  filter: blur(40px);
+  animation: moveGradient 20s infinite alternate;
+  z-index: 0;
+}
+
+.element-1 {
+  width: 300px;
+  height: 300px;
+  top: 10%;
+  left: 5%;
+  animation-duration: 25s;
+  animation-delay: -5s;
+}
+
+.element-2 {
+  width: 400px;
+  height: 400px;
+  bottom: 15%;
+  right: 10%;
+  animation-duration: 30s;
+  animation-delay: -10s;
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color),
+    var(--accent-color)
+  );
+}
+
+.element-3 {
+  width: 200px;
+  height: 200px;
+  top: 60%;
+  left: 30%;
+  animation-duration: 18s;
+  animation-delay: -2s;
+  background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+}
+
+@keyframes moveGradient {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30vw, 20vh) scale(1.1);
+  }
+  66% {
+    transform: translate(-20vw, -10vh) scale(0.9);
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+}
+
+/* --- INPUTS WITH GLOW ON FOCUS --- */
+.login-card input,
+.register-card input {
+  background: rgba(255, 255, 255, 0.4); /* More transparent for glass look */
+  border: 1px solid var(--login-border);
+  color: var(--text-main);
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  width: 100%;
+  transition: all 0.3s var(--ease);
+}
+
+.login-card input:focus,
+.register-card input:focus {
+  background: rgba(255, 255, 255, 0.9); /* More solid on focus */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--login-glow); /* The glow effect */
+  outline: none;
+}
+
+/* --- BUTTONS WITH ANIMATED GLOW --- */
+.login-card button,
+.register-card button {
+  width: 100%;
+  font-size: 1.1rem;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  border-radius: 16px;
+  background: linear-gradient(
+    45deg,
+    var(--primary-color),
+    var(--secondary-color)
+  );
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+  transition: all 0.3s var(--ease);
+  position: relative;
+  overflow: hidden;
+}
+
+.login-card button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(34, 211, 238, 0.4);
+}
+
+/* Animated button border glow */
+.login-card button::before,
+.register-card button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.4) 0%,
+    transparent 60%
+  );
+  transform: rotate(45deg);
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.login-card button:hover::before,
+.register-card button:hover::before {
+  opacity: 1;
+  animation: buttonGlow 1.5s infinite linear;
+}
+
+@keyframes buttonGlow {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Toggle Links --- */
+.toggle-auth-link {
+  display: block;
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.toggle-auth-link a {
+  color: var(--primary-color);
+  font-weight: 600;
+}
+
+/* --- Dark Mode Overrides for Login --- */
+body.dark-mode .login-card input,
+body.dark-mode .register-card input {
+  background: rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+
+body.dark-mode .login-card input:focus,
+body.dark-mode .register-card input:focus {
+  background: rgba(20, 27, 48, 0.9);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px var(--login-glow);
+}
+
+body.dark-mode .login-card h2,
+body.dark-mode .register-card h2 {
+  color: var(--primary-color); /* Maintain primary color */
 }

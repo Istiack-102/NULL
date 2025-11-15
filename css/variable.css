@@ -1,0 +1,207 @@
+/* ============================================================
+   CAREER PLATFORM - MAIN STYLESHEET
+   ============================================================
+   1. Variables & Theme Configuration
+   2. Reset & Typography
+   3. Layout & Structure (Grid, Containers)
+   4. Components (Buttons, Forms, Cards)
+   5. Navigation Bar
+   6. Dashboard Specifics (Charts, Skills, Stats)
+   7. Feature Specifics (Roadmap, Chatbot)
+   8. Utilities & Animations
+   9. Responsive Design (Mobile)
+   ============================================================ */
+
+/* ==========================================
+   1. VARIABLES & THEME CONFIGURATION
+   ========================================== */
+/* ==================================
+   1. LIGHT THEME (Purple Gradient Aesthetic)
+================================== */
+:root {
+  /* --- Primary Brand Colors (Violet/Purple) --- */
+  --primary-color: #8b5cf6; /* Vivid Violet */
+  --primary-light: #f3e8ff; /* Soft Lavender Background */
+  --primary-dark: #7c3aed; /* Deep Violet for text */
+
+  /* --- Secondary Accents (Pink/Fuchsia) --- */
+  --secondary-color: #d946ef; /* Fuchsia */
+  --secondary-light: #fae8ff;
+  --accent-color: #f59e0b; /* Gold for highlights */
+
+  /* --- Surface Colors --- */
+  /* Semi-transparent white for Glass effect */
+  --bg-color: #f3f4f6;
+  --light-color: rgba(255, 255, 255, 0.8); /* Glassy Cards */
+
+  /* --- Typography --- */
+  --dark-color: #1e1b4b; /* Dark Navy-Purple (Instead of Black) */
+  --text-muted: #64748b;
+
+  /* --- Borders & Shadows --- */
+  --border-color: rgba(255, 255, 255, 0.6);
+  --border-radius: 16px;
+
+  /* --- Purple Tinted Shadow --- */
+  --shadow: 0 4px 15px -3px rgba(139, 92, 246, 0.1);
+  --shadow-lg: 0 20px 25px -5px rgba(139, 92, 246, 0.25);
+  --login-bg: #e0e7ff; /* Very light blue-purple for login background */
+  --login-card-bg: rgba(255, 255, 255, 0.75);
+  --login-border: rgba(255, 255, 255, 0.9);
+  --login-shadow: 0 10px 40px rgba(79, 70, 229, 0.1);
+  --login-glow: rgba(99, 102, 241, 0.3);
+} /* ==================================
+   2. BODY BACKGROUND (Animated Mesh)
+================================== */
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--dark-color);
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  /* --- ✨ The Moving Purple Gradient ✨ --- */
+  /* Lavender -> Soft Blue -> Light Pink -> White */
+  background: linear-gradient(
+    -45deg,
+    #f3e8ff,
+    /* Violet Tint */ #e0e7ff,
+    /* Indigo Tint */ #fce7f3,
+    /* Pink Tint */ #ffffff
+  );
+  background-size: 400% 400%;
+  animation: pastelDream 12s ease infinite;
+
+  transition: background 0.5s ease, color 0.3s ease;
+}
+
+/* The smooth flow animation */
+@keyframes pastelDream {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+} /* ==================================
+   3. SMOOTH GLASS CARDS (Heavy Blur Logic)
+================================== */
+.card {
+  /*InitialState:;
+  Slightlytransparent*/
+  background-color: rgba(255, 255, 255, 0.6);
+  /*StandardBlur*/
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  /*MinimalShadow*/
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+  /*✨SMOOTHTRANSITION(NoJumpyMovement)✨*/ /*'cubic-bezier'actslikeaheavyobjectmovingsmoothly*/
+  transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+/* --- ✨ THE "FULL BLUR" HOVER ✨ --- */
+.card:hover {
+  /*1.VerySubtleLift(NotIrritating)*/
+  transform: translateY(-2px);
+  /*2.MAXBLUREFFECT*/ /*Thismakesthebackgroundbehindthecardturnintoasmoothwashofcolor*/
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  /*3.Makeitslightlymoresolid/white*/
+  background-color: rgba(255, 255, 255, 0.85);
+  /*4.GlowyPurpleShadow*/
+  box-shadow: 0 20px 40px -10px rgba(139, 92, 246, 0.2);
+  border-color: #ffffff;
+  -webkit-transform: translateY(-2px);
+  -moz-transform: translateY(-2px);
+  -ms-transform: translateY(-2px);
+  -o-transform: translateY(-2px);
+}
+
+/* --- THEME: MIDNIGHT PRO (Dark Mode) --- */
+
+body.dark-mode {
+  /* --- The Palette (Zinc/Slate Scale) --- */
+  --grey-color: #09090b; /* Almost Black Background */
+  --light-color: #18181b; /* Dark Grey Cards */
+  --dark-color: #f4f4f5; /* Crisp White Text */
+
+  /* --- Accents --- */
+  --primary-color: #3b82f6; /* Vivid Blue */
+  --primary-light: rgba(59, 130, 246, 0.15); /* Subtle Blue Tint */
+  --primary-dark: #60a5fa;
+
+  /* --- Borders are Crucial here --- */
+  --border-color: #27272a; /* Distinct Grey Border */
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+
+  /* --- Background Setup --- */
+  background-color: #09090b;
+  background-image: none; /* No messy gradients */
+  animation: none; /* No distracting movement */
+  position: relative;
+  --login-bg: #0c0f1d; /* Very dark blue for login background */
+  --login-card-bg: rgba(20, 27, 48, 0.8);
+  --login-border: rgba(255, 255, 255, 0.08);
+  --login-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --login-glow: rgba(99, 102, 241, 0.2);
+}
+
+/* --- 1. The "Top Glow" (Static) --- */
+/* Adds a subtle blue fade at the very top. Looks professional. */
+body.dark-mode::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 400px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.08), transparent);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* --- 2. Clean Cards with Borders --- */
+body.dark-mode .card,
+body.dark-mode .navbar {
+  background-color: var(--light-color);
+  border: 1px solid var(--border-color); /* Sharp definition */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05); /* Inner highlight */
+}
+
+/* Hover State */
+body.dark-mode .card:hover {
+  border-color: #3f3f46; /* Slightly lighter border on hover */
+}
+
+/* --- 3. Fix Inputs --- */
+body.dark-mode input,
+body.dark-mode select,
+body.dark-mode textarea {
+  background-color: #09090b; /* Matches body background */
+  border: 1px solid var(--border-color);
+  color: #fff;
+}
+
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); /* Pro focus ring */
+}
+
+/* --- 4. Fix Links & Icons --- */
+body.dark-mode a {
+  color: #60a5fa;
+}
+body.dark-mode .stat-icon,
+body.dark-mode .stat-emoji {
+  background-color: #27272a; /* Darker circle backgrounds */
+  border: 1px solid #3f3f46;
+}
